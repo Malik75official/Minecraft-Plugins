@@ -1,0 +1,196 @@
+name: ServerSystem
+version: 1.1.1
+main: de.malik.serversystem.ServerSystemBootstrap
+api-version: '26.2'
+author: Malik75
+description: Server-System mit Economy, Homes, Warps und Moderation
+
+commands:
+  balance:
+    description: Zeigt dein Guthaben oder das eines Spielers.
+    usage: /balance [Spieler]
+    aliases: [bal, money]
+    permission: serversystem.command.balance
+  pay:
+    description: Überweist Geld an einen Spieler.
+    usage: /pay <Spieler> <Betrag>
+    permission: serversystem.command.pay
+  payall:
+    description: Zahlt allen Online-Spielern einen Betrag aus.
+    usage: /payall <Betrag>
+    permission: serversystem.command.payall
+  eco:
+    description: Verwaltet Spielerguthaben.
+    usage: /eco <set|add|take> <Spieler> <Betrag>
+    permission: serversystem.command.eco
+  sethome:
+    description: Speichert dein Home.
+    usage: /sethome [Name]
+    permission: serversystem.command.sethome
+  home:
+    description: Teleportiert dich zu deinem Home.
+    usage: /home [Name]
+    permission: serversystem.command.home
+  delhome:
+    description: Löscht eines deiner Homes.
+    usage: /delhome <Name>
+    permission: serversystem.command.delhome
+  homes:
+    description: Listet deine Homes auf.
+    usage: /homes
+    permission: serversystem.command.homes
+  setwarp:
+    description: Erstellt einen Warp an deinem Standort.
+    usage: /setwarp <Name>
+    permission: serversystem.command.setwarp
+  warp:
+    description: Teleportiert dich zu einem Warp.
+    usage: /warp <Name>
+    permission: serversystem.command.warp
+  delwarp:
+    description: Entfernt einen Warp.
+    usage: /delwarp <Name>
+    permission: serversystem.command.delwarp
+  farmwelt:
+    description: Verbindet dich mit dem konfigurierten Farmwelt-Server.
+    usage: /farmwelt
+    permission: serversystem.command.farmwelt
+  discord:
+    description: Zeigt den Discord-Link.
+    usage: /discord
+    permission: serversystem.command.discord
+  webseite:
+    description: Zeigt den Webseiten-Link.
+    usage: /webseite
+    aliases: [website, web]
+    permission: serversystem.command.webseite
+  webshop:
+    description: Zeigt den Webshop-Link.
+    usage: /webshop
+    permission: serversystem.command.webshop
+  setspawn:
+    description: Setzt den Server-Spawn.
+    usage: /setspawn
+    permission: serversystem.command.setspawn
+  spawn:
+    description: Teleportiert dich zum Server-Spawn.
+    usage: /spawn
+    permission: serversystem.command.spawn
+  ec:
+    description: Öffnet deine Enderchest.
+    usage: /ec
+    aliases: [enderchest]
+    permission: serversystem.command.ec
+  craft:
+    description: Öffnet eine Werkbank.
+    usage: /craft
+    aliases: [workbench]
+    permission: serversystem.command.craft
+  amboss:
+    description: Öffnet einen Amboss.
+    usage: /amboss
+    aliases: [anvil]
+    permission: serversystem.command.amboss
+  ofen:
+    description: Öffnet einen Ofen.
+    usage: /ofen
+    aliases: [furnace]
+    permission: serversystem.command.ofen
+  kick:
+    description: Wirft einen Spieler vom Server.
+    usage: /kick <Spieler> [Grund]
+    permission: serversystem.command.kick
+  ban:
+    description: Bannt einen online befindlichen Spieler für eine Dauer oder permanent.
+    usage: /ban <Spieler> <Dauer|perma> <Grund>
+    permission: serversystem.command.ban
+  unban:
+    description: Hebt einen Bann auf.
+    usage: /unban <Spieler>
+    permission: serversystem.command.unban
+  mute:
+    description: Stummschaltet einen Spieler.
+    usage: /mute <Spieler> [Dauer] [Grund]
+    permission: serversystem.command.mute
+  unmute:
+    description: Hebt eine Stummschaltung auf.
+    usage: /unmute <Spieler>
+    permission: serversystem.command.unmute
+
+permissions:
+  serversystem.command.balance:
+    default: true
+  serversystem.command.pay:
+    default: true
+  serversystem.command.payall:
+    default: op
+  serversystem.command.eco:
+    default: op
+  serversystem.command.sethome:
+    default: true
+  serversystem.command.home:
+    default: true
+  serversystem.command.delhome:
+    default: true
+  serversystem.command.homes:
+    default: true
+  serversystem.command.setwarp:
+    default: op
+  serversystem.command.warp:
+    default: true
+  serversystem.command.delwarp:
+    default: op
+  serversystem.command.farmwelt:
+    default: true
+  serversystem.command.discord:
+    default: true
+  serversystem.command.webseite:
+    default: true
+  serversystem.command.webshop:
+    default: true
+  serversystem.command.setspawn:
+    default: op
+  serversystem.command.spawn:
+    default: true
+  serversystem.command.ec:
+    default: true
+  serversystem.command.craft:
+    default: true
+  serversystem.command.amboss:
+    default: true
+  serversystem.command.ofen:
+    default: true
+  serversystem.command.kick:
+    default: op
+  serversystem.command.ban:
+    default: op
+  serversystem.command.unban:
+    default: op
+  serversystem.command.mute:
+    default: op
+  serversystem.command.unmute:
+    default: op
+  serversystem.economy.admin:
+    default: op
+  serversystem.protection.bypass:
+    default: op
+  spawn.override:
+    default: op
+  prefix.owner:
+    default: false
+  prefix.developer:
+    default: false
+  prefix.premium:
+    default: false
+  prefix.spieler:
+    default: true
+  serversystem.maxhome.5:
+    default: false
+  serversystem.maxhome.10:
+    default: false
+  serversystem.maxhome.15:
+    default: false
+  serversystem.maxhome.20:
+    default: false
+  serversystem.maxhome.25:
+    default: false

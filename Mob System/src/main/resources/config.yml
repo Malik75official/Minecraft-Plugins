@@ -1,0 +1,15 @@
+levels:
+  # Chance that a newly encountered mob gets a level above 1 (0.0 to 1.0).
+  spawn-chance: 0.2
+  # Random higher levels are selected evenly from 2 to this value.
+  max-level: 5
+  # Additional maximum health per level, as a fraction of the mob's base health.
+  health-per-level: 0.2
+  # Highest level accepted by /mobspawn.
+  command-max-level: 100
+
+rewards:
+  # Additional dropped experience per level above 1 (0.5 = +50% per level).
+  xp-per-level: 0.5
+  # Additional item drops per level above 1 (0.25 = +25% per level).
+  loot-per-level: 0.25

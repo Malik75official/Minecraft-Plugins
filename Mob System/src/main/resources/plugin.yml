@@ -1,0 +1,17 @@
+name: MobSystem
+version: 1.2.0
+main: de.malik.mobsystem.MobSystemPlugin
+api-version: '26.2'
+author: Malik75
+description: Mob-Lebensanzeigen, Level, Belohnungen und Mob-Spawn-Befehl.
+
+commands:
+  mobspawn:
+    description: Spawnt ein Tier oder einen Mob auf einem festgelegten Level.
+    usage: /mobspawn <mob> <level> [spieler]
+    aliases: [ms]
+
+permissions:
+  mobsystem.spawn:
+    description: Erlaubt das Spawnen von Mobs mit festgelegtem Level.
+    default: op

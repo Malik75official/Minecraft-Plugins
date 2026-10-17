@@ -1,0 +1,20 @@
+enabled: true
+server-name: "MalikCraft"
+title: "<gold><bold>{server_name}</bold></gold>"
+
+# Unterstützte Platzhalter: {server_name}, {server}, {player}, {player_name},
+# {player_money}, {online_players}, {max_players}, {world}
+# Farben und Formatierungen verwenden MiniMessage.
+lines:
+  - "<dark_gray>---------------</dark_gray>"
+  - "<gray>Spieler</gray>"
+  - "<white>{player}</white>"
+  - ""
+  - "<gray>Server</gray>"
+  - "<yellow>{server_name}</yellow>"
+  - ""
+  - "<gray>Guthaben</gray>"
+  - "<green>{player_money}</green>"
+  - ""
+  - "<gray>Online</gray>"
+  - "<aqua>{online_players}<dark_gray>/<white>{max_players}"

@@ -1,0 +1,22 @@
+checks:
+  movement:
+    enabled: true
+    max-horizontal-speed: 9.5
+    consecutive-speed-samples: 3
+    hover-samples: 8
+  combat:
+    enabled: true
+    max-reach: 3.6
+    max-clicks-per-second: 20
+  xray:
+    enabled: true
+    minimum-ores: 10
+    hidden-ore-ratio: 0.8
+    track-ancient-debris: true
+    decoys:
+      enabled: true
+      chunk-radius: 2
+      ores-per-chunk: 12
+
+alerts:
+  cooldown-seconds: 10

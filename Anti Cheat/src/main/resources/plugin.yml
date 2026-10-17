@@ -1,0 +1,35 @@
+name: AntiCheat
+version: 1.0.4
+main: de.malik.anticheat.AntiCheatPlugin
+api-version: '26.2'
+author: Malik75
+description: Modulares AntiCheat mit konfigurierbaren Movement-, Combat- und X-Ray-Checks
+
+commands:
+  anticheat:
+    description: Verwaltet AntiCheat-Alerts und Konfiguration.
+    usage: /anticheat <alerts|reload>
+    aliases: [ac]
+
+permissions:
+  anticheat.alerts:
+    description: Erhaelt und schaltet AntiCheat-Staff-Alerts um.
+    default: op
+  anticheat.admin:
+    description: Laedt die AntiCheat-Konfiguration neu.
+    default: op
+  anticheat.bypass.fly:
+    description: Umgeht nur den Fly-Check.
+    default: false
+  anticheat.bypass.speed:
+    description: Umgeht nur den Speed-Check.
+    default: false
+  anticheat.bypass.reach:
+    description: Umgeht nur den Reach-Check.
+    default: false
+  anticheat.bypass.autoclicker:
+    description: Umgeht nur den AutoClicker-Check.
+    default: false
+  anticheat.bypass.xray:
+    description: Umgeht nur den X-Ray-Check und dessen Koeder.
+    default: false
