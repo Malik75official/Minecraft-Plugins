@@ -86,8 +86,10 @@ function Sync-Workspace {
     }
 }
 
-$topLevel = (Invoke-Git @('rev-parse', '--show-toplevel') | Select-Object -First 1).Trim()
-if (-not [string]::Equals($topLevel, $repoRoot, [StringComparison]::OrdinalIgnoreCase)) {
+$pathSeparators = [char[]]@('\', '/')
+$topLevel = [IO.Path]::GetFullPath((Invoke-Git @('rev-parse', '--show-toplevel') | Select-Object -First 1).Trim()).TrimEnd($pathSeparators)
+$normalizedRepoRoot = [IO.Path]::GetFullPath($repoRoot).TrimEnd($pathSeparators)
+if (-not [string]::Equals($topLevel, $normalizedRepoRoot, [StringComparison]::OrdinalIgnoreCase)) {
     throw "Git repository root '$topLevel' does not match workspace '$repoRoot'."
 }
 
