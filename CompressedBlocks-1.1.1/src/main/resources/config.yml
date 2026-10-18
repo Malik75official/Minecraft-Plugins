@@ -1,0 +1,39 @@
+# Die Kompressionsfolge ist fest auf 1x bis 9x eingestellt.
+# 9 Originale ergeben ein 1x-Item, 9 gleiche 1x-Items ergeben ein 2x-Item usw.
+# 9x enthaelt 387420489 Original-Items. Alte max-compression-level-Werte
+# aus frueheren Konfigurationen werden absichtlich ignoriert.
+
+# Maximale Groesse der sicher im Token gespeicherten Originaldaten.
+# 262144 Bytes = 256 KiB. Das schuetzt den Server vor absichtlich riesigen Items.
+max-payload-bytes: 262144
+
+crafting:
+  enabled: true
+
+  # Vanilla-Rezepte haben Vorrang. Beispiel: 9 Eisenbarren ergeben weiterhin
+  # einen Eisenblock. Solche Items lassen sich immer mit /compress komprimieren.
+  prefer-vanilla-recipes: true
+
+  # Ein Entpack-Ergebnis muss als legaler einzelner Stack darstellbar sein.
+  # Nicht stapelbare Items funktionieren immer ueber /decompress.
+  decompress-only-stackable: true
+
+# Optional koennen einzelne Materialien gesperrt werden.
+# Namen entsprechen org.bukkit.Material, z. B. DRAGON_EGG.
+blocked-materials: []
+
+messages:
+  prefix: '<dark_gray>[<aqua>CompressedBlocks</aqua>]</dark_gray> '
+  no-permission: '<red>Dafuer hast du keine Berechtigung.</red>'
+  players-only: '<red>Dieser Befehl kann nur von Spielern benutzt werden.</red>'
+  empty-hand: '<yellow>Nimm das gewuenschte Item in die Haupthand.</yellow>'
+  not-compressed: '<yellow>Das Item in deiner Haupthand ist nicht komprimiert.</yellow>'
+  corrupt-token: '<red>Dieser Token ist beschaedigt oder stammt von einem anderen Server. Es wurde nichts veraendert.</red>'
+  blocked-item: '<yellow>Dieses Item ist in der Konfiguration gesperrt.</yellow>'
+  max-level: '<yellow>Die maximale Kompressionsstufe 9x ist erreicht.</yellow>'
+  not-enough: '<yellow>Du brauchst 9 exakt gleiche Items (einschliesslich Metadaten) im Inventar.</yellow>'
+  no-space: '<yellow>In deinem Inventar ist nicht genug Platz fuer das Ergebnis.</yellow>'
+  # <level> bleibt als numerischer Platzhalter fuer alte Konfigurationen verfuegbar.
+  compressed: '<green>Komprimiert: <count> Rezept(e) zu <tier> (<units> Original-Items).</green>'
+  decompressed: '<green>Entpackt: <count> Token(s), jeweils eine x-Stufe.</green>'
+  reloaded: '<green>Konfiguration neu geladen.</green>'

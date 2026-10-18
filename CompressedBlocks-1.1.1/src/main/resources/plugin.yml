@@ -1,0 +1,48 @@
+name: CompressedBlocks
+version: '${version}'
+main: dev.codex.compressedblocks.CompressedBlocksPlugin
+api-version: '26.2'
+description: Komprimiert beliebige Items sicher im Verhältnis 9 zu 1.
+authors: [Codex]
+
+commands:
+  compressedblocks:
+    description: Hauptbefehl für CompressedBlocks
+    usage: /<command> [help|info|inspect|reload]
+    aliases: [cb, cblocks]
+  compress:
+    description: Komprimiert neun zum Hand-Item identische Items
+    usage: /<command> [all]
+  decompress:
+    description: Entpackt das komprimierte Item in der Haupthand
+    usage: /<command> [all]
+
+permissions:
+  compressedblocks.use:
+    description: Erlaubt die normalen Plugin-Funktionen
+    default: true
+    children:
+      compressedblocks.compress: true
+      compressedblocks.decompress: true
+      compressedblocks.craft: true
+  compressedblocks.compress:
+    description: Erlaubt das Komprimieren
+    default: true
+  compressedblocks.decompress:
+    description: Erlaubt das Entpacken
+    default: true
+  compressedblocks.craft:
+    description: Erlaubt Komprimieren und Entpacken im Craftingfeld
+    default: true
+  compressedblocks.admin:
+    description: Erlaubt Inspektion und Neuladen
+    default: op
+    children:
+      compressedblocks.admin.inspect: true
+      compressedblocks.admin.reload: true
+  compressedblocks.admin.inspect:
+    description: Zeigt technische Informationen zum Hand-Item
+    default: op
+  compressedblocks.admin.reload:
+    description: Lädt die Konfiguration neu
+    default: op

@@ -1,5 +1,5 @@
 enabled: true
-server-name: "MalikCraft"
+server-name: "TestServer"
 title: "<gold><bold>{server_name}</bold></gold>"
 
 # Unterstützte Platzhalter: {server_name}, {server}, {player}, {player_name},

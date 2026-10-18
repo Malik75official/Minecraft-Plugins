@@ -3,6 +3,7 @@ package de.malik.serversystem.utility;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -10,9 +11,12 @@ import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
+import org.bukkit.block.Chest;
+import org.bukkit.block.DoubleChest;
 import org.bukkit.block.TileState;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -22,13 +26,18 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockExplodeEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -152,13 +161,29 @@ public final class PlayerAdministrationSystem implements CommandExecutor, Listen
         }
     }
 
+    @EventHandler(ignoreCancelled = true)
+    public void onLockedContainerMove(InventoryMoveItemEvent event) {
+        if (isLockedInventory(event.getSource()) || isLockedInventory(event.getDestination())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onLockedContainerBlockExplode(BlockExplodeEvent event) {
+        event.blockList().removeIf(this::isLocked);
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onLockedContainerEntityExplode(EntityExplodeEvent event) {
+        event.blockList().removeIf(this::isLocked);
+    }
+
     @EventHandler
     public void onLockedContainerOpen(InventoryOpenEvent event) {
-        if (!(event.getPlayer() instanceof Player player) || event.getInventory().getLocation() == null) {
+        if (!(event.getPlayer() instanceof Player player) || !isLockedInventory(event.getInventory())) {
             return;
         }
-        Block block = event.getInventory().getLocation().getBlock();
-        if (isLocked(block) && !player.hasPermission("serversystem.command.lockchest")) {
+        if (!player.hasPermission("serversystem.command.lockchest")) {
             event.setCancelled(true);
             player.sendMessage("§cDiese Kiste ist gesperrt.");
         }
@@ -531,26 +556,86 @@ public final class PlayerAdministrationSystem implements CommandExecutor, Listen
             return;
         }
         Block block = player.getTargetBlockExact(5);
-        if (block == null || !(block.getState() instanceof TileState tile)
+        if (block == null || !(block.getState() instanceof TileState)
                 || (block.getType() != Material.CHEST && block.getType() != Material.TRAPPED_CHEST
                 && block.getType() != Material.BARREL)) {
             sender.sendMessage("§cSchaue innerhalb von 5 Blöcken auf eine Kiste oder ein Barrel.");
             return;
         }
-        if (tile.getPersistentDataContainer().has(lockedContainerKey, PersistentDataType.BYTE)) {
-            tile.getPersistentDataContainer().remove(lockedContainerKey);
-            tile.update();
+        List<Block> containerBlocks = getContainerBlocks(block);
+        boolean currentlyLocked = containerBlocks.stream().anyMatch(this::isMarkedLocked);
+        for (Block containerBlock : containerBlocks) {
+            setContainerLocked(containerBlock, !currentlyLocked);
+        }
+        if (currentlyLocked) {
             sender.sendMessage("§aDie Kiste ist wieder entsperrt.");
         } else {
-            tile.getPersistentDataContainer().set(lockedContainerKey, PersistentDataType.BYTE, (byte) 1);
-            tile.update();
             sender.sendMessage("§cDie Kiste wurde gesperrt.");
         }
     }
 
     private boolean isLocked(Block block) {
+        if (isMarkedLocked(block)) {
+            return true;
+        }
+        if (!(block.getState() instanceof Chest chest)) {
+            return false;
+        }
+        InventoryHolder holder = chest.getInventory().getHolder(false);
+        return holder instanceof DoubleChest doubleChest
+                && (isLockedChestHalf(doubleChest.getLeftSide()) || isLockedChestHalf(doubleChest.getRightSide()));
+    }
+
+    private boolean isLockedInventory(Inventory inventory) {
+        InventoryHolder holder = inventory.getHolder(false);
+        if (holder instanceof DoubleChest doubleChest) {
+            return isLockedChestHalf(doubleChest.getLeftSide()) || isLockedChestHalf(doubleChest.getRightSide());
+        }
+        if (holder instanceof TileState tile) {
+            return isLocked(tile.getBlock());
+        }
+        Location location = inventory.getLocation();
+        return location != null && isLocked(location.getBlock());
+    }
+
+    private boolean isLockedChestHalf(InventoryHolder holder) {
+        return holder instanceof Chest chest && isMarkedLocked(chest.getBlock());
+    }
+
+    private boolean isMarkedLocked(Block block) {
         return block.getState() instanceof TileState tile
                 && tile.getPersistentDataContainer().has(lockedContainerKey, PersistentDataType.BYTE);
+    }
+
+    private List<Block> getContainerBlocks(Block block) {
+        if (block.getState() instanceof Chest chest
+                && chest.getInventory().getHolder(false) instanceof DoubleChest doubleChest) {
+            List<Block> halves = new ArrayList<>(2);
+            addChestHalf(halves, doubleChest.getLeftSide());
+            addChestHalf(halves, doubleChest.getRightSide());
+            if (!halves.isEmpty()) {
+                return halves;
+            }
+        }
+        return List.of(block);
+    }
+
+    private void addChestHalf(List<Block> halves, InventoryHolder holder) {
+        if (holder instanceof Chest chest && !halves.contains(chest.getBlock())) {
+            halves.add(chest.getBlock());
+        }
+    }
+
+    private void setContainerLocked(Block block, boolean locked) {
+        if (!(block.getState() instanceof TileState tile)) {
+            return;
+        }
+        if (locked) {
+            tile.getPersistentDataContainer().set(lockedContainerKey, PersistentDataType.BYTE, (byte) 1);
+        } else {
+            tile.getPersistentDataContainer().remove(lockedContainerKey);
+        }
+        tile.update();
     }
 
     private boolean require(CommandSender sender, String permission) {
