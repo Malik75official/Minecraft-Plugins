@@ -1,7 +1,7 @@
 # Minecraft-Plugins
 Minecraft Plugins
 
-This repository contains the `Anti Cheat`, `Mob System`, and `server system` projects.
+This repository contains the `Anti Cheat` and `server system` projects. Mob-System features are integrated into `server system`.
 
 ## Automatic GitHub sync
 

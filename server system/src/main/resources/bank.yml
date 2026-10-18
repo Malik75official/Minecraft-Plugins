@@ -1,0 +1,9 @@
+settings:
+  interest:
+    enabled: true
+    daily-percent: 0.1
+  account-fee:
+    enabled: false
+    daily-amount: 0.0
+
+accounts: {}

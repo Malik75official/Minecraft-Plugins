@@ -1,0 +1,9 @@
+levels:
+  spawn-chance: 0.2
+  max-level: 5
+  health-per-level: 0.2
+  command-max-level: 100
+
+rewards:
+  xp-per-level: 0.5
+  loot-per-level: 0.25

@@ -1,0 +1,35 @@
+economy:
+  starting-balance: 100.0
+  currency: "$"
+
+spawn:
+  protection-radius: 16
+  welcome-message: "Willkommen auf dem Server, {player}!"
+
+inventory-sync:
+  enabled: false
+  jdbc-url: "jdbc:mariadb://localhost:3306/serversystem"
+  username: "serversystem"
+  password: "CHANGE_ME"
+  save-interval-seconds: 300
+  notify-on-save: true
+  save-message: "<green>Inventar gespeichert in <white>{duration} ms</white>.</green>"
+
+farmwelt:
+  enabled: true
+  target-server: "farmwelt"
+  connecting-message: "<green>Verbinde mit {server}..."
+
+links:
+  discord: "<blue>Discord: <underlined>discord.gg/DEININVITE</underlined>"
+  webseite: "<aqua>Webseite: <underlined>https://example.de</underlined>"
+  webshop: "<gold>Webshop: <underlined>https://shop.example.de</underlined>"
+
+storage:
+  mysql:
+    enabled: false
+    jdbc-url: "jdbc:mariadb://localhost:3306/serversystem"
+    username: "serversystem"
+    password: "CHANGE_ME"
+    table: "serversystem_plugin_data"
+

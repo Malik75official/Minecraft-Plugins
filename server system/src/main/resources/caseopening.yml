@@ -1,0 +1,62 @@
+animation:
+  steps: 28
+  fast-delay-ticks: 1
+  medium-delay-ticks: 2
+  slow-delay-ticks: 3
+  final-delay-ticks: 5
+
+generic-enderchests: []
+
+cases:
+  starter:
+    display-name: "&aStarter-Case"
+    price: 50
+    item-material: CHEST
+    lore:
+      - "&7Preis: 50 Kristalle"
+    rewards:
+      - type: item
+        item: DIAMOND
+        amount: 1
+        chance: 30
+        display-name: "&bDiamant"
+      - type: item
+        item: EMERALD
+        amount: 1
+        chance: 20
+        display-name: "&aEmerald"
+      - type: item
+        item: GOLD_INGOT
+        amount: 8
+        chance: 50
+        display-name: "&6Gold"
+      - type: money
+        amount: 100.0
+        chance: 5
+  elite:
+    display-name: "&6Elite-Case"
+    price: 150
+    item-material: TRAPPED_CHEST
+    lore:
+      - "&7Preis: 150 Kristalle"
+    rewards:
+      - type: item
+        item: DIAMOND
+        amount: 3
+        chance: 35
+        display-name: "&bDiamant"
+      - type: item
+        item: EMERALD
+        amount: 2
+        chance: 25
+        display-name: "&aEmerald"
+      - type: item
+        item: NETHERITE_INGOT
+        amount: 1
+        chance: 15
+        display-name: "&5Netherit"
+      - type: item
+        item: GOLD_BLOCK
+        amount: 4
+        chance: 25
+        display-name: "&6Goldblock"
