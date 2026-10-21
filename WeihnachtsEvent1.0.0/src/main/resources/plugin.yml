@@ -1,0 +1,27 @@
+name: WeihnachtsEvent
+version: '${version}'
+main: de.skyfunity.weihnachten.WeihnachtsPlugin
+api-version: '1.21.4'
+description: Weihnachts-Event mit Adventskalender, Cookies und Quests.
+softdepend: [Citizens]
+commands:
+  weihnachtsnpc:
+    description: Setzt den Adventskalender-NPC.
+    permission: Weihnachten.npc
+  cookieshop:
+    description: Öffnet den Cookie-Shop.
+  cookieshop-admin:
+    description: Verwaltet den Cookie-Shop.
+    permission: Weihnachten.admin
+  whead:
+    description: Registriert einen Weihnachtskopf.
+    permission: Weihnachten.admin
+  gift:
+    description: Schenkt Cookies.
+  cookies:
+    description: Zeigt deine Cookies.
+permissions:
+  Weihnachten.npc:
+    default: op
+  Weihnachten.admin:
+    default: op
