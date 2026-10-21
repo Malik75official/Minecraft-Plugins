@@ -10,6 +10,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Verwaltet den Cookie-Shop: Items und Preise pro Tag.
+ * Daten werden in shop.yml gespeichert.
+ */
 public class ShopManager {
     private final WeihnachtsPlugin plugin;
     private final File file;

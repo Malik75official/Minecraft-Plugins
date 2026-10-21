@@ -7,6 +7,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Speichert und verwaltet die Cookie-Währung der Spieler.
+ * Die Daten werden in cookies.yml abgelegt.
+ */
 public class CookieManager {
     private final WeihnachtsPlugin plugin;
     private final File file;
@@ -19,20 +23,30 @@ public class CookieManager {
         load();
     }
 
-    public int get(UUID uuid) { return cookies.getOrDefault(uuid, 0); }
-    public void add(UUID uuid, int amount) { cookies.put(uuid, get(uuid) + amount); save(); }
+    public int get(UUID uuid) {
+        return cookies.getOrDefault(uuid, 0);
+    }
+
+    public void add(UUID uuid, int amount) {
+        cookies.put(uuid, get(uuid) + amount);
+        save();
+    }
+
     public boolean take(UUID uuid, int amount) {
         int cur = get(uuid);
-        if (cur < amount) return false;
+        if (cur < amount)
+            return false;
         cookies.put(uuid, cur - amount);
         save();
         return true;
     }
 
     private void load() {
-        if (!file.exists()) return;
+        if (!file.exists())
+            return;
         YamlConfiguration c = YamlConfiguration.loadConfiguration(file);
-        if (c.getConfigurationSection("cookies") == null) return;
+        if (c.getConfigurationSection("cookies") == null)
+            return;
         for (String k : c.getConfigurationSection("cookies").getKeys(false)) {
             cookies.put(UUID.fromString(k), c.getInt("cookies." + k));
         }
@@ -43,6 +57,9 @@ public class CookieManager {
         for (Map.Entry<UUID, Integer> e : cookies.entrySet()) {
             c.set("cookies." + e.getKey(), e.getValue());
         }
-        try { c.save(file); } catch (IOException ignored) {}
+        try {
+            c.save(file);
+        } catch (IOException ignored) {
+        }
     }
 }

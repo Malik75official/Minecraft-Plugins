@@ -10,15 +10,19 @@ public class ShopListener implements Listener {
 
     @EventHandler
     public void onClick(InventoryClickEvent e) {
-        if (e.getView().getTitle().startsWith("Cookie-Shop")) {
+        if (e.getView().getTitle().contains("Cookie-Shop") && !e.getView().getTitle().contains("Admin")) {
             e.setCancelled(true);
             CookieShopGui.handleClick(plugin, e);
-        } else if (e.getView().getTitle().startsWith("Cookie-Shop-Admin")) {
+        } else if (e.getView().getTitle().contains("Cookie-Shop-Admin")) {
             e.setCancelled(true);
             CookieShopAdminGui.handleClick(plugin, e);
         } else if (e.getView().getTitle().contains("Adventskalender")) {
             e.setCancelled(true);
             AdventCalendarGui.handleClick(plugin, e);
+            return;
+        } else if (e.getView().getTitle().contains("Weihnachts-Quests")) {
+            e.setCancelled(true);
+            QuestGui.handleClick(plugin, e);
         }
     }
 }

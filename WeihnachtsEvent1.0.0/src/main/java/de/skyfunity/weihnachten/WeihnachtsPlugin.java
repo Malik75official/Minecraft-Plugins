@@ -2,8 +2,13 @@ package de.skyfunity.weihnachten;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
+/**
+ * Hauptklasse des Weihnachts-Events.
+ * Registriert alle Befehle, Listener und Manager beim Server-Start.
+ */
 public final class WeihnachtsPlugin extends JavaPlugin {
 
+    // Verwaltet die Cookie-Waehrung der Spieler
     private CookieManager cookies;
     private AdventCalendarManager advent;
     private HeadManager heads;
@@ -31,12 +36,15 @@ public final class WeihnachtsPlugin extends JavaPlugin {
         if (g != null) g.setExecutor(new GiftCommand(this));
         var co = getCommand("cookies");
         if (co != null) co.setExecutor(new CookiesCommand(this));
+        var cadm = getCommand("cookie-admin");
+        if (cadm != null) cadm.setExecutor(new CookieAdminCommand(this));
+        var wq = getCommand("wquests");
+        if (wq != null) wq.setExecutor(new WQuestsCommand(this));
 
         getServer().getPluginManager().registerEvents(new AdventNpcListener(this), this);
         getServer().getPluginManager().registerEvents(new HeadListener(this), this);
         getServer().getPluginManager().registerEvents(new ShopListener(this), this);
 
-        quests.start();
         printBanner();
         getLogger().info("WeihnachtsEvent aktiviert.");
     }

@@ -11,8 +11,8 @@ public class CookiesCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player p)) { sender.sendMessage("Nur Spieler."); return true; }
-        p.sendMessage("§6Du hast " + plugin.cookies().get(p.getUniqueId()) + " Cookies.");
+        if (!(sender instanceof Player p)) { sender.sendMessage("§c§lWeihnachtsEvent: §r§7Nur Spieler."); return true; }
+        p.sendMessage("§c§lWeihnachtsEvent: §r§7§6Du hast " + plugin.cookies().get(p.getUniqueId()) + " Cookies.");
         return true;
     }
 }

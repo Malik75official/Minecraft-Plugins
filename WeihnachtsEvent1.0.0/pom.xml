@@ -5,12 +5,12 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.skyfunity</groupId>
     <artifactId>WeihnachtsEvent</artifactId>
-    <version>1.0.13</version>
+    <version>1.1.10</version>
     <packaging>jar</packaging>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>21</maven.compiler.release>
-        <paper.version>1.21.4-R0.1-SNAPSHOT</paper.version>
+        <paper.version>26.2.build.111-stable</paper.version>
     </properties>
     <repositories>
         <repository>

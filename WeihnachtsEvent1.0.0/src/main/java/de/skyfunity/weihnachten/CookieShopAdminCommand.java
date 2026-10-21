@@ -12,8 +12,8 @@ public class CookieShopAdminCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player p)) { sender.sendMessage("Nur Spieler."); return true; }
-        if (!p.hasPermission("Weihnachten.admin")) { p.sendMessage("Keine Berechtigung."); return true; }
+        if (!(sender instanceof Player p)) { sender.sendMessage("§c§lWeihnachtsEvent: §r§7Nur Spieler."); return true; }
+        if (!p.hasPermission("Weihnachten.admin")) { p.sendMessage("§c§lWeihnachtsEvent: §r§7Keine Berechtigung."); return true; }
 
         if (args.length == 0) {
             CookieShopAdminGui.open(plugin, p);
@@ -22,28 +22,28 @@ public class CookieShopAdminCommand implements CommandExecutor {
 
         if (args[0].equalsIgnoreCase("add") && args.length >= 2) {
             int day;
-            try { day = Integer.parseInt(args[1]); } catch (NumberFormatException e) { p.sendMessage("Ungültiger Tag."); return true; }
+            try { day = Integer.parseInt(args[1]); } catch (NumberFormatException e) { p.sendMessage("§c§lWeihnachtsEvent: §r§7Ungültiger Tag."); return true; }
             int price = args.length >= 3 ? parseInt(args[2], 1) : 1;
             ItemStack held = p.getInventory().getItemInMainHand();
-            if (held == null || held.getType().isAir()) { p.sendMessage("Halte ein Item in der Hand."); return true; }
+            if (held == null || held.getType().isAir()) { p.sendMessage("§c§lWeihnachtsEvent: §r§7Halte ein Item in der Hand."); return true; }
             java.util.List<ShopManager.ShopEntry> list = new java.util.ArrayList<>(plugin.shop().forDay(day));
             list.add(new ShopManager.ShopEntry(held.clone(), price));
             plugin.shop().setDay(day, list);
-            p.sendMessage("§aItem zu Tag " + day + " hinzugefügt (Preis " + price + ").");
+            p.sendMessage("§c§lWeihnachtsEvent: §r§7§aItem zu Tag " + day + " hinzugefügt (Preis " + price + ").");
             return true;
         }
 
         if (args[0].equalsIgnoreCase("clear") && args.length >= 2) {
             int day;
-            try { day = Integer.parseInt(args[1]); } catch (NumberFormatException e) { p.sendMessage("Ungültiger Tag."); return true; }
+            try { day = Integer.parseInt(args[1]); } catch (NumberFormatException e) { p.sendMessage("§c§lWeihnachtsEvent: §r§7Ungültiger Tag."); return true; }
             plugin.shop().setDay(day, new java.util.ArrayList<>());
-            p.sendMessage("§aTag " + day + " geleert.");
+            p.sendMessage("§c§lWeihnachtsEvent: §r§7§aTag " + day + " geleert.");
             return true;
         }
 
         if (args[0].equalsIgnoreCase("list") && args.length >= 2) {
             int day;
-            try { day = Integer.parseInt(args[1]); } catch (NumberFormatException e) { p.sendMessage("Ungültiger Tag."); return true; }
+            try { day = Integer.parseInt(args[1]); } catch (NumberFormatException e) { p.sendMessage("§c§lWeihnachtsEvent: §r§7Ungültiger Tag."); return true; }
             for (int i = 0; i < plugin.shop().forDay(day).size(); i++) {
                 ShopManager.ShopEntry e = plugin.shop().forDay(day).get(i);
                 p.sendMessage("§7" + i + ": " + e.item.getType() + " x" + e.item.getAmount() + " Preis " + e.price);
@@ -51,7 +51,7 @@ public class CookieShopAdminCommand implements CommandExecutor {
             return true;
         }
 
-        p.sendMessage("§eVerwendung: /cookieshop-admin [add <tag> <preis>|clear <tag>|list <tag>]");
+        p.sendMessage("§c§lWeihnachtsEvent: §r§7§eVerwendung: /cookieshop-admin [add <tag> <preis>|clear <tag>|list <tag>]");
         return true;
     }
 

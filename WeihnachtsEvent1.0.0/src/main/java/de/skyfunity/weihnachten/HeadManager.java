@@ -10,6 +10,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+/**
+ * Verwaltet die versteckten Weihnachtskoepfe auf dem Server.
+ * Jeder Kopf kann nur einmal pro Spieler eingeloest werden.
+ */
 public class HeadManager {
     private final WeihnachtsPlugin plugin;
     private final File file;
@@ -33,6 +37,13 @@ public class HeadManager {
     public void register(Location loc, int amount) {
         heads.put(key(loc), amount);
         claimed.putIfAbsent(key(loc), new HashSet<>());
+        save();
+    }
+
+    public void remove(Location loc) {
+        String k = key(loc);
+        heads.remove(k);
+        claimed.remove(k);
         save();
     }
 

@@ -3,11 +3,20 @@ package de.skyfunity.weihnachten;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 public class HeadListener implements Listener {
     private final WeihnachtsPlugin plugin;
     public HeadListener(WeihnachtsPlugin plugin) { this.plugin = plugin; }
+
+    @EventHandler
+    public void onBreak(BlockBreakEvent e) {
+        if (plugin.heads().isHead(e.getBlock().getLocation())) {
+            plugin.heads().remove(e.getBlock().getLocation());
+            e.getPlayer().sendMessage("§c§lWeihnachtsEvent: §r§7Weihnachtskopf entfernt.");
+        }
+    }
 
     @EventHandler
     public void onInteract(PlayerInteractEvent e) {
@@ -17,11 +26,11 @@ public class HeadListener implements Listener {
         if (!plugin.heads().isHead(e.getClickedBlock().getLocation())) return;
         e.setCancelled(true);
         if (!plugin.heads().claim(e.getPlayer().getUniqueId(), e.getClickedBlock().getLocation())) {
-            e.getPlayer().sendMessage("§cDu hast diesen Kopf bereits gefunden.");
+            e.getPlayer().sendMessage("§c§lWeihnachtsEvent: §r§7Du hast diesen Kopf bereits gefunden.");
             return;
         }
         int amt = plugin.heads().amount(e.getClickedBlock().getLocation());
         plugin.cookies().add(e.getPlayer().getUniqueId(), amt);
-        e.getPlayer().sendMessage("§aDu hast " + amt + " Cookies gefunden!");
+        e.getPlayer().sendMessage("§c§lWeihnachtsEvent: §r§aDu hast " + amt + " Cookies gefunden!");
     }
 }

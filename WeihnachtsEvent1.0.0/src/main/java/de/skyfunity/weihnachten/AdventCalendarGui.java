@@ -61,9 +61,16 @@ public class AdventCalendarGui {
             inv.setItem(DAY_SLOTS[i], it);
         }
 
-        // info item in center bottom
+        // info item in center bottom (Weihnachtsmann-Kopf)
         ItemStack info = new ItemStack(Material.PLAYER_HEAD);
         SkullMeta sm = (SkullMeta) info.getItemMeta();
+        try {
+            org.bukkit.profile.PlayerProfile profile = org.bukkit.Bukkit.createProfile(java.util.UUID.fromString("2bd03f26-1d31-4abe-b6c6-554e0925a537"), "Santa");
+            org.bukkit.profile.PlayerTextures textures = profile.getTextures();
+            textures.setSkin(new java.net.URL("http://textures.minecraft.net/texture/d161ea2369d1de96532c0b811f984c94b584dea8dc61a9acbc7e3b796c2e"));
+            profile.setTextures(textures);
+            sm.setOwnerProfile(profile);
+        } catch (Exception ignored) {}
         sm.setDisplayName("§6§lWeihnachtsmann");
         List<String> il = new ArrayList<>();
         il.add("§7Abgeholt: §e" + plugin.advent().claimed(p.getUniqueId()).size() + "/24");
@@ -88,15 +95,15 @@ public class AdventCalendarGui {
         if (day == -1) return;
         Player p = (Player) e.getWhoClicked();
         int today = java.time.LocalDate.now().getDayOfMonth();
-        if (day > today) { p.sendMessage("§cDieser Tag ist noch nicht verfügbar."); return; }
-        if (plugin.advent().hasClaimed(p.getUniqueId(), day)) { p.sendMessage("§eBereits abgeholt."); return; }
+        if (day > today) { p.sendMessage("§c§lWeihnachtsEvent: §r§7§cDieser Tag ist noch nicht verfügbar."); return; }
+        if (plugin.advent().hasClaimed(p.getUniqueId(), day)) { p.sendMessage("§c§lWeihnachtsEvent: §r§7§eBereits abgeholt."); return; }
         plugin.advent().claim(p.getUniqueId(), day);
         plugin.cookies().add(p.getUniqueId(), 5);
-        p.sendMessage("§aTag " + day + " abgeholt! +5 Cookies");
+        p.sendMessage("§c§lWeihnachtsEvent: §r§7§aTag " + day + " abgeholt! +5 Cookies");
         if (plugin.advent().allClaimed(p.getUniqueId()) && !plugin.advent().bonusClaimed(p.getUniqueId())) {
             plugin.advent().setBonus(p.getUniqueId());
             plugin.cookies().add(p.getUniqueId(), 50);
-            p.sendMessage("§6§lBonus! §aAlle 24 Tage abgeholt: +50 Cookies");
+            p.sendMessage("§c§lWeihnachtsEvent: §r§7§6§lBonus! §aAlle 24 Tage abgeholt: +50 Cookies");
         }
         open(plugin, p);
     }

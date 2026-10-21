@@ -9,6 +9,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+/**
+ * Verwaltet den Adventskalender: welche Tage ein Spieler schon abgeholt hat
+ * und ob der Bonus fuer alle 24 Tage bereits vergeben wurde.
+ */
 public class AdventCalendarManager {
     private final WeihnachtsPlugin plugin;
     private final File file;

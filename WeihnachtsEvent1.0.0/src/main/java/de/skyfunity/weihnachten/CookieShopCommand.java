@@ -11,7 +11,7 @@ public class CookieShopCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player p)) { sender.sendMessage("Nur Spieler."); return true; }
+        if (!(sender instanceof Player p)) { sender.sendMessage("§c§lWeihnachtsEvent: §r§7Nur Spieler."); return true; }
         CookieShopGui.open(plugin, p, java.time.LocalDate.now().getDayOfMonth());
         return true;
     }

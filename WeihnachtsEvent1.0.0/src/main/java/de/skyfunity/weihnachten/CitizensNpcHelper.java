@@ -21,7 +21,7 @@ public class CitizensNpcHelper {
                 skin.setSkinName("Santa");
             } catch (Exception ignored) {}
             npc.setProtected(true);
-            p.sendMessage("§aWeihnachtsmann-NPC (Citizens) gesetzt.");
+            p.sendMessage("§c§lWeihnachtsEvent: §r§7§aWeihnachtsmann-NPC (Citizens) gesetzt.");
             return true;
         } catch (Throwable t) {
             return false;

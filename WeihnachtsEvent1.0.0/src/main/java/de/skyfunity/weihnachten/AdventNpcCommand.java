@@ -24,8 +24,8 @@ public class AdventNpcCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player p)) { sender.sendMessage("Nur Spieler."); return true; }
-        if (!p.hasPermission("Weihnachten.npc")) { p.sendMessage("Keine Berechtigung."); return true; }
+        if (!(sender instanceof Player p)) { sender.sendMessage("§c§lWeihnachtsEvent: §r§7Nur Spieler."); return true; }
+        if (!p.hasPermission("Weihnachten.npc")) { p.sendMessage("§c§lWeihnachtsEvent: §r§7Keine Berechtigung."); return true; }
 
         // Try Citizens (real player NPC) if available
         try {
@@ -76,7 +76,7 @@ public class AdventNpcCommand implements CommandExecutor {
         boots.setItemMeta(bm);
         as.getEquipment().setBoots(boots);
 
-        p.sendMessage("§aWeihnachtsmann-NPC (Spieler-Look) gesetzt.");
+        p.sendMessage("§c§lWeihnachtsEvent: §r§7§aWeihnachtsmann-NPC (Spieler-Look) gesetzt.");
         return true;
     }
 }
