@@ -1,7 +1,7 @@
 name: ServerSystem
-version: 1.8.0
+version: 1.8.7
 main: de.malik.serversystem.ServerSystemBootstrap
-api-version: '26.1'
+api-version: '26.2'
 author: Malik75
 description: Server-System mit Economy, Homes, Warps, Moderation und Case-Opening
 
@@ -147,6 +147,10 @@ commands:
   lockchest:
     description: Sperrt oder entsperrt eine anvisierte Kiste.
     usage: /lockchest
+  nick:
+    description: Setzt deinen Nicknamen.
+    usage: /nick <Name|off>
+    permission: serversystem.command.nick
   kick:
     description: Wirft einen Spieler vom Server.
     usage: /kick <Spieler> [Grund]
@@ -281,6 +285,8 @@ permissions:
   serversystem.command.invsee.edit:
     default: op
   serversystem.command.lockchest:
+    default: op
+  serversystem.command.nick:
     default: op
   serversystem.command.kick:
     default: op

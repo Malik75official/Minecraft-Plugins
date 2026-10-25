@@ -75,17 +75,13 @@ public final class InventorySyncSystem implements Listener {
     public InventorySyncSystem(JavaPlugin plugin) {
         this.plugin = plugin;
         FileConfiguration config = plugin.getConfig();
-        enabled = config.getBoolean("inventory-sync.enabled", false);
-        boolean useSharedDatabase = config.getBoolean("storage.mysql.enabled", false);
-        String connectionPath = useSharedDatabase ? "storage.mysql." : "inventory-sync.";
-        jdbcUrl = config.getString(connectionPath + "jdbc-url", "jdbc:mariadb://localhost:3306/serversystem");
-        username = config.getString(connectionPath + "username", "serversystem");
-        password = config.getString(connectionPath + "password", "CHANGE_ME");
-        long intervalSeconds = Math.max(1, config.getLong("inventory-sync.save-interval-seconds", 300));
-        saveIntervalTicks = intervalSeconds * 20L;
-        notifyOnSave = config.getBoolean("inventory-sync.notify-on-save", true);
-        saveMessage = config.getString("inventory-sync.save-message",
-            "<green>Inventar gespeichert in <white>{duration} ms</white>.</green>");
+        enabled = config.getBoolean("inventory-sync", false) && config.getBoolean("storage.mysql.enabled", false);
+        jdbcUrl = config.getString("storage.mysql.jdbc-url", "jdbc:mariadb://localhost:3306/serversystem");
+        username = config.getString("storage.mysql.username", "serversystem");
+        password = config.getString("storage.mysql.password", "CHANGE_ME");
+        saveIntervalTicks = 5L;
+        notifyOnSave = false;
+        saveMessage = "";
     }
 
     public boolean isEnabled() {
@@ -229,6 +225,7 @@ public final class InventorySyncSystem implements Listener {
             player.getInventory().setArmorContents(armor);
             player.getInventory().setItemInOffHand(offhand.length == 0 ? null : offhand[0]);
             player.getEnderChest().setContents(enderChest);
+            player.sendMessage("§aInventar erfolgreich geladen.");
         } catch (IOException | ClassNotFoundException | RuntimeException exception) {
             plugin.getLogger().severe("Gespeichertes Inventar von " + player.getName() + " ist ungültig: "
                     + exception.getMessage());

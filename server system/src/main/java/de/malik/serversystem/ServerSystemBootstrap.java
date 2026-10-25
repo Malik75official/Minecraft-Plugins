@@ -12,6 +12,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.ServicePriority;
 
 import de.malik.serversystem.bank.BankSystem;
 import de.malik.serversystem.caseopening.CaseAdminMenu;
@@ -87,6 +88,17 @@ public final class ServerSystemBootstrap extends JavaPlugin {
         }
 
         EconomySystem economy = new EconomySystem(this, playerData);
+        try {
+            if (getServer().getPluginManager().getPlugin("Vault") != null) {
+                Class<?> hookClass = Class.forName("de.malik.serversystem.economy.VaultEconomyHook");
+                Object hook = hookClass.getConstructor(JavaPlugin.class, EconomySystem.class).newInstance(this, economy);
+                Class<?> economyClass = Class.forName("net.milkbowl.vault.economy.Economy");
+                getServer().getServicesManager().register((Class) economyClass, hook, this, ServicePriority.Highest);
+                getLogger().info("Vault-Economy-Provider registriert.");
+            }
+        } catch (Throwable throwable) {
+            getLogger().warning("Vault-Economy-Provider konnte nicht registriert werden: " + throwable.getMessage());
+        }
         bankSystem = new BankSystem(this, economy, persistentStorage);
         caseOpeningManager = new CaseOpeningManager(this, economy, persistentStorage);
         caseAdminMenu = new CaseAdminMenu(this);
@@ -185,6 +197,9 @@ public final class ServerSystemBootstrap extends JavaPlugin {
                 continue;
             }
             command.setExecutor(executor);
+            if (executor instanceof org.bukkit.command.TabCompleter tabCompleter) {
+                command.setTabCompleter(tabCompleter);
+            }
         }
     }
 

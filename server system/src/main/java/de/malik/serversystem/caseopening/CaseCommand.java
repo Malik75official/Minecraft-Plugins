@@ -168,6 +168,10 @@ public class CaseCommand implements CommandExecutor {
                     sender.sendMessage("§cDer Preis muss eine Zahl sein.");
                     return true;
                 }
+                if (price < 0) {
+                    sender.sendMessage("§cDer Preis darf nicht negativ sein.");
+                    return true;
+                }
                 plugin.getCaseOpeningManager().setCasePrice(caseId, price);
                 sender.sendMessage("§aPreis für die Kiste §f" + caseId + " §aauf §f" + price + " §agesetzt.");
                 return true;
@@ -247,6 +251,10 @@ public class CaseCommand implements CommandExecutor {
                     sender.sendMessage("§cDie Menge muss eine Zahl sein.");
                     return true;
                 }
+                if (amount <= 0) {
+                    sender.sendMessage("§cDie Menge muss größer als 0 sein.");
+                    return true;
+                }
                 plugin.getCrystalManager().addBalance(target.getUniqueId(), amount);
                 sender.sendMessage("§aDu hast §f" + amount + " §aKristalle an §f" + target.getName() + " §agegeben.");
                 return true;
@@ -266,6 +274,10 @@ public class CaseCommand implements CommandExecutor {
                     amount = Integer.parseInt(args[2]);
                 } catch (NumberFormatException ex) {
                     sender.sendMessage("§cDie Menge muss eine Zahl sein.");
+                    return true;
+                }
+                if (amount < 0) {
+                    sender.sendMessage("§cDas Guthaben darf nicht negativ sein.");
                     return true;
                 }
                 plugin.getCrystalManager().setBalance(target.getUniqueId(), amount);

@@ -48,10 +48,16 @@ public class CrystalManager {
     }
 
     public void addBalance(UUID uuid, int amount) {
+        if (amount <= 0) {
+            return;
+        }
         setBalance(uuid, getBalance(uuid) + amount);
     }
 
     public boolean takeBalance(UUID uuid, int amount) {
+        if (amount <= 0) {
+            return false;
+        }
         int current = getBalance(uuid);
         if (current < amount) {
             return false;

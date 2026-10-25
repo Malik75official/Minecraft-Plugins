@@ -21,6 +21,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Villager;
 import org.bukkit.event.EventHandler;
@@ -40,7 +41,7 @@ import de.malik.serversystem.economy.EconomySystem;
 import de.malik.serversystem.storage.PersistentYamlStorage;
 import de.malik.serversystem.storage.YamlStore;
 
-public final class BankSystem implements Listener, CommandExecutor {
+public final class BankSystem implements Listener, CommandExecutor, org.bukkit.command.TabCompleter {
     private static final long DAY_MILLIS = 86_400_000L;
     private static final int MAX_DAILY_CATCH_UP = 365;
 
@@ -48,6 +49,7 @@ public final class BankSystem implements Listener, CommandExecutor {
     private final EconomySystem economy;
     private final YamlStore bankData;
     private final NamespacedKey bankNpcKey;
+    private Object citizensIntegration;
     private final Map<UUID, PendingInput> pendingInputs = new ConcurrentHashMap<>();
 
     public BankSystem(JavaPlugin plugin, EconomySystem economy, PersistentYamlStorage storage) {
@@ -58,6 +60,14 @@ public final class BankSystem implements Listener, CommandExecutor {
         }
         this.bankData = new YamlStore(plugin, "bank.yml", storage);
         this.bankNpcKey = new NamespacedKey(plugin, "bank_npc");
+        try {
+            Class<?> integrationClass = Class.forName("de.malik.serversystem.bank.BankCitizensIntegration");
+            this.citizensIntegration = integrationClass.getConstructor(JavaPlugin.class, BankSystem.class)
+                    .newInstance(plugin, this);
+            integrationClass.getMethod("register").invoke(this.citizensIntegration);
+        } catch (Throwable ignored) {
+            this.citizensIntegration = null;
+        }
     }
 
     @Override
@@ -73,6 +83,10 @@ public final class BankSystem implements Listener, CommandExecutor {
         if (commandName.equalsIgnoreCase("banknpc")) {
             if (!player.hasPermission("serversystem.command.bank.npc")) {
                 player.sendMessage("§cDafür hast du keine Berechtigung.");
+                return true;
+            }
+            if (args.length == 1 && args[0].equalsIgnoreCase("delete")) {
+                deleteNpc(player);
                 return true;
             }
             spawnNpc(player);
@@ -173,11 +187,38 @@ public final class BankSystem implements Listener, CommandExecutor {
         pendingInputs.remove(event.getPlayer().getUniqueId());
     }
 
+    @Override
+    public java.util.List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        if (command.getName().equalsIgnoreCase("bank")) {
+            if (args.length == 1) {
+                return java.util.List.of("admin", "npc");
+            }
+        }
+        if (command.getName().equalsIgnoreCase("banknpc")) {
+            if (args.length == 1) {
+                return java.util.List.of("delete");
+            }
+        }
+        return java.util.List.of();
+    }
+
     public void shutdown() {
         bankData.save();
     }
 
     private void spawnNpc(Player player) {
+        if (citizensIntegration != null) {
+            try {
+                boolean spawned = (Boolean) citizensIntegration.getClass()
+                        .getMethod("spawnNpc", Player.class).invoke(citizensIntegration, player);
+                if (spawned) {
+                    return;
+                }
+            } catch (Throwable throwable) {
+                plugin.getLogger().warning("Citizens-Bank-NPC konnte nicht erstellt werden: " + throwable.getMessage());
+            }
+        }
+
         Villager npc = player.getWorld().spawn(player.getLocation(), Villager.class, villager -> {
             villager.setCustomName("§6§lBank");
             villager.setCustomNameVisible(true);
@@ -188,10 +229,90 @@ public final class BankSystem implements Listener, CommandExecutor {
             villager.setPersistent(true);
             villager.getPersistentDataContainer().set(bankNpcKey, PersistentDataType.BYTE, (byte) 1);
         });
+        ensureBankerAccount(npc.getUniqueId());
         player.sendMessage("§aBank-NPC platziert: " + npc.getUniqueId());
     }
 
-    private void openPlayerMenu(Player player) {
+    public void ensureBankerAccountPublic(UUID bankerId) {
+        ensureBankerAccount(bankerId);
+    }
+
+    private void deleteNpc(Player player) {
+        if (citizensIntegration != null) {
+            try {
+                boolean deleted = (Boolean) citizensIntegration.getClass()
+                        .getMethod("deleteNpc", Player.class).invoke(citizensIntegration, player);
+                if (deleted) {
+                    player.sendMessage("§aBank-NPC entfernt.");
+                    return;
+                }
+            } catch (Throwable throwable) {
+                plugin.getLogger().warning("Citizens-Bank-NPC konnte nicht entfernt werden: " + throwable.getMessage());
+            }
+        }
+
+        org.bukkit.util.RayTraceResult rayResult = player.getWorld().rayTraceEntities(
+                player.getEyeLocation(), player.getLocation().getDirection(), 5.0, 0.0,
+                this::isBankNpcEntity);
+        Entity target = rayResult == null ? null : rayResult.getHitEntity();
+
+        if (target == null) {
+            List<Entity> candidates = new ArrayList<>();
+            for (Entity entity : player.getNearbyEntities(5, 5, 5)) {
+                if (isBankNpcEntity(entity)) {
+                    candidates.add(entity);
+                }
+            }
+            if (candidates.isEmpty()) {
+                player.sendMessage("§cKein Bank-NPC in der Nähe gefunden.");
+                return;
+            }
+            target = candidates.stream()
+                    .min(java.util.Comparator.comparingDouble(entity -> entity.getLocation().distanceSquared(player.getLocation())))
+                    .orElse(null);
+        }
+
+        if (target != null) {
+            target.remove();
+            player.sendMessage("§aBank-NPC entfernt.");
+        } else {
+            player.sendMessage("§cKein Bank-NPC in der Nähe gefunden.");
+        }
+    }
+
+    private boolean isBankNpcEntity(Entity entity) {
+        if (entity instanceof Villager villager
+                && villager.getPersistentDataContainer().has(bankNpcKey, PersistentDataType.BYTE)) {
+            return true;
+        }
+        if (citizensIntegration != null) {
+            try {
+                Object npc = citizensIntegration.getClass().getMethod("getNpc", Entity.class).invoke(citizensIntegration, entity);
+                return npc != null;
+            } catch (Throwable ignored) {
+            }
+        }
+        return false;
+    }
+
+    private void ensureBankerAccount(UUID bankerId) {
+        String path = accountPath(bankerId);
+        if (bankData.data().contains(path + ".last-accrual")) {
+            return;
+        }
+        bankData.data().set(path + ".balance", 0.0);
+        bankData.data().set(path + ".last-accrual", System.currentTimeMillis());
+        bankData.data().set(path + ".last-interest-amount", 0.0);
+        bankData.data().set(path + ".last-interest-percent", 0.0);
+        bankData.data().set(path + ".last-fee", 0.0);
+        bankData.data().set(path + ".name", "Bänker");
+        try {
+            bankData.save();
+        } catch (RuntimeException ignored) {
+        }
+    }
+
+    public void openPlayerMenu(Player player) {
         accrueAccount(player.getUniqueId());
         BankMenuHolder holder = new BankMenuHolder(BankMenuHolder.View.PLAYER);
         Inventory inventory = createInventory(holder, 27, "§8Bank");
@@ -244,10 +365,12 @@ public final class BankSystem implements Listener, CommandExecutor {
         int limit = Math.min(entries.size(), 45);
         for (int index = 0; index < limit; index++) {
             AccountEntry entry = entries.get(index);
+            String storedName = bankData.data().getString(accountPath(entry.playerId()) + ".name");
             OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(entry.playerId());
-            String playerName = offlinePlayer.getName() == null
-                    ? entry.playerId().toString().substring(0, 8)
-                    : offlinePlayer.getName();
+            String playerName = storedName != null ? storedName
+                    : (offlinePlayer.getName() == null
+                            ? entry.playerId().toString().substring(0, 8)
+                            : offlinePlayer.getName());
             Material icon = switch (index) {
                 case 0 -> Material.GOLD_BLOCK;
                 case 1 -> Material.IRON_BLOCK;

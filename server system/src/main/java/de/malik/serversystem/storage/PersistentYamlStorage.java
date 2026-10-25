@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -14,6 +13,7 @@ import java.util.regex.Pattern;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.mariadb.jdbc.Driver;
 
 public final class PersistentYamlStorage {
     private static final Pattern SQL_IDENTIFIER = Pattern.compile("[A-Za-z0-9_]{1,48}");
@@ -125,8 +125,22 @@ public final class PersistentYamlStorage {
     }
 
     private Connection openConnection() throws SQLException {
-        return DriverManager.getConnection(jdbcUrl, username, password);
+    Driver driver = new Driver();
+
+    java.util.Properties properties = new java.util.Properties();
+    properties.setProperty("user", username);
+    properties.setProperty("password", password);
+
+    Connection connection = driver.connect(jdbcUrl, properties);
+
+    if (connection == null) {
+        throw new SQLException(
+            "MariaDB-Treiber akzeptiert die JDBC-URL nicht: " + jdbcUrl
+        );
     }
+
+    return connection;
+}
 
     private IllegalStateException storageFailure(String message, SQLException cause) {
         plugin.getLogger().severe(message + ": " + cause.getMessage());

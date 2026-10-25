@@ -64,14 +64,14 @@ public final class MobDisplayManager implements Listener {
     public void start() {
         for (var world : Bukkit.getWorlds()) {
             for (Entity entity : world.getEntities()) {
-                if (entity instanceof Mob mob) {
+                if (entity instanceof Mob mob && !isExcludedMob(mob)) {
                     initializeMob(mob);
                     createHealthDisplay(mob);
                 }
             }
         }
 
-        Bukkit.getScheduler().runTaskTimer(plugin, this::updateHealthDisplays, 1L, 2L);
+        Bukkit.getScheduler().runTaskTimer(plugin, this::updateHealthDisplays, 1L, 4L);
     }
 
     public void shutdown() {
@@ -84,7 +84,7 @@ public final class MobDisplayManager implements Listener {
 
     @EventHandler
     public void onMobSpawn(EntitySpawnEvent event) {
-        if (event.getEntity() instanceof Mob mob) {
+        if (event.getEntity() instanceof Mob mob && !isExcludedMob(mob)) {
             initializeMob(mob);
             createHealthDisplay(mob);
         }
@@ -93,7 +93,7 @@ public final class MobDisplayManager implements Listener {
     @EventHandler
     public void onChunkLoad(ChunkLoadEvent event) {
         for (Entity entity : event.getChunk().getEntities()) {
-            if (entity instanceof Mob mob) {
+            if (entity instanceof Mob mob && !isExcludedMob(mob)) {
                 initializeMob(mob);
                 createHealthDisplay(mob);
             }
@@ -152,10 +152,23 @@ public final class MobDisplayManager implements Listener {
             TextDisplay display = entry.getValue();
             Entity entity = Bukkit.getEntity(mobId);
 
-            if (!(entity instanceof Mob mob) || mob.isDead() || !mob.isValid()) {
+            if (!(entity instanceof Mob mob) || mob.isDead() || !mob.isValid() || isExcludedMob(mob) || mob.isInvisible()) {
                 removeHealthDisplay(mobId);
                 continue;
             }
+
+            boolean visibleToSomeone = false;
+            for (Player player : mob.getWorld().getPlayers()) {
+                if (player.getLocation().distanceSquared(mob.getLocation()) <= 4096.0 && player.hasLineOfSight(mob)) {
+                    visibleToSomeone = true;
+                    break;
+                }
+            }
+            if (!visibleToSomeone) {
+                display.setViewRange(0.0F);
+                continue;
+            }
+            display.setViewRange(1.0F);
 
             String displayKey = getDisplayKey(mob);
             if (!displayKey.equals(displayedState.get(mobId))) {
@@ -168,7 +181,7 @@ public final class MobDisplayManager implements Listener {
     }
 
     private void createHealthDisplay(Mob mob) {
-        if (!mob.isValid() || mob.isDead()) {
+        if (!mob.isValid() || mob.isDead() || isExcludedMob(mob) || mob.isInvisible()) {
             return;
         }
 
@@ -391,6 +404,22 @@ public final class MobDisplayManager implements Listener {
                 && !player.hasPotionEffect(PotionEffectType.BLINDNESS)
                 && !player.isInsideVehicle()
                 && player.getAttackCooldown() >= 0.9F;
+    }
+
+    private boolean isExcludedMob(Mob mob) {
+        if (mob.getPersistentDataContainer().has(new NamespacedKey(plugin, "bank_npc"), PersistentDataType.BYTE)) {
+            return true;
+        }
+        try {
+            Class<?> citizensApi = Class.forName("net.citizensnpcs.api.CitizensAPI");
+            Object registry = citizensApi.getMethod("getNPCRegistry").invoke(null);
+            Boolean npc = (Boolean) registry.getClass().getMethod("isNPC", Entity.class).invoke(registry, mob);
+            if (Boolean.TRUE.equals(npc)) {
+                return true;
+            }
+        } catch (Throwable ignored) {
+        }
+        return false;
     }
 
     private String formatHealth(double value) {

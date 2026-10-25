@@ -305,7 +305,7 @@ public class CaseOpeningManager {
             return;
         }
 
-        settings.getData().set("cases." + caseId + ".price", price);
+        settings.getData().set("cases." + caseId + ".price", Math.max(0, price));
         settings.save();
         reloadCases();
     }

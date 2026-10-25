@@ -27,6 +27,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockExplodeEvent;
+import org.bukkit.event.block.BlockPistonExtendEvent;
+import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
@@ -56,6 +58,7 @@ public final class PlayerAdministrationSystem implements CommandExecutor, Listen
     private final Map<UUID, TeleportRequest> requestsByTarget = new HashMap<>();
     private final Map<UUID, TeleportRequest> requestsByRequester = new HashMap<>();
     private final Map<UUID, UUID> inventoryViewTargets = new HashMap<>();
+    private final Map<UUID, String> nicknames = new HashMap<>();
 
     public PlayerAdministrationSystem(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -79,6 +82,7 @@ public final class PlayerAdministrationSystem implements CommandExecutor, Listen
             case "tpacancel" -> cancelTeleport(sender, args);
             case "invsee" -> inspectInventory(sender, args);
             case "lockchest" -> toggleContainerLock(sender, args);
+            case "nick" -> setNick(sender, args);
             default -> sender.sendMessage("Unbekannter Befehl.");
         }
         return true;
@@ -176,6 +180,20 @@ public final class PlayerAdministrationSystem implements CommandExecutor, Listen
     @EventHandler(ignoreCancelled = true)
     public void onLockedContainerEntityExplode(EntityExplodeEvent event) {
         event.blockList().removeIf(this::isLocked);
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onLockedContainerPistonExtend(BlockPistonExtendEvent event) {
+        if (event.getBlocks().stream().anyMatch(this::isLocked)) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onLockedContainerPistonRetract(BlockPistonRetractEvent event) {
+        if (event.getBlocks().stream().anyMatch(this::isLocked)) {
+            event.setCancelled(true);
+        }
     }
 
     @EventHandler
@@ -541,6 +559,36 @@ public final class PlayerAdministrationSystem implements CommandExecutor, Listen
         sender.sendMessage(canEdit
                 ? "§aDu siehst und bearbeitest das Inventar von " + target.getName() + "."
                 : "§eDu siehst das Inventar von " + target.getName() + " schreibgeschützt.");
+    }
+
+    private void setNick(CommandSender sender, String[] args) {
+        if (!require(sender, "serversystem.command.nick")) {
+            return;
+        }
+        Player player = requirePlayer(sender);
+        if (player == null) {
+            return;
+        }
+        if (args.length == 0) {
+            sender.sendMessage("Verwendung: /nick <Name|off>");
+            return;
+        }
+        if (args[0].equalsIgnoreCase("off") || args[0].equalsIgnoreCase("reset")) {
+            nicknames.remove(player.getUniqueId());
+            player.displayName(Component.text(player.getName()));
+            player.playerListName(Component.text(player.getName()));
+            sender.sendMessage("§aDein Nickname wurde zurückgesetzt.");
+            return;
+        }
+        String nick = String.join(" ", args);
+        if (nick.length() > 16) {
+            sender.sendMessage("§cDer Nickname ist zu lang (max. 16 Zeichen).");
+            return;
+        }
+        nicknames.put(player.getUniqueId(), nick);
+        player.displayName(Component.text(nick));
+        player.playerListName(Component.text(nick));
+        sender.sendMessage("§aNickname gesetzt: " + nick);
     }
 
     private void toggleContainerLock(CommandSender sender, String[] args) {

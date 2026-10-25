@@ -1,7 +1,9 @@
 package de.malik.serversystem.moderation;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -21,8 +23,20 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerLoginEvent;
 
-public final class ModerationSystem implements CommandExecutor, Listener {
+public final class ModerationSystem implements CommandExecutor, Listener, org.bukkit.command.TabCompleter {
     private static final Pattern BAN_DURATION_PART = Pattern.compile("(\\d+)([smhdwy])", Pattern.CASE_INSENSITIVE);
+    private static final Map<String, Preset> PRESETS = new HashMap<>();
+    static {
+        PRESETS.put("hacking", new Preset("Hacking / Cheating", "30d", "ban"));
+        PRESETS.put("xray", new Preset("X-Ray / Resource pack abuse", "14d", "ban"));
+        PRESETS.put("chat-spam", new Preset("Chat spam", "1h", "mute"));
+        PRESETS.put("advertising", new Preset("Advertising other servers", "7d", "mute"));
+        PRESETS.put("hate-speech", new Preset("Hate speech / Discrimination", "30d", "mute"));
+        PRESETS.put("griefing", new Preset("Griefing", "7d", "ban"));
+        PRESETS.put("bug-abuse", new Preset("Bug / Exploit abuse", "7d", "ban"));
+        PRESETS.put("inappropriate", new Preset("Inappropriate behaviour", null, "warn"));
+        PRESETS.put("ban-evasion", new Preset("Ban evasion", "perm", "ban"));
+    }
     private final YamlStore moderationStore;
     private final FileConfiguration moderation;
     private final ConcurrentMap<UUID, Long> mutedPlayers = new ConcurrentHashMap<>();
@@ -91,13 +105,57 @@ public final class ModerationSystem implements CommandExecutor, Listener {
     }
 
     private void ban(CommandSender sender, String[] args) {
-        if (args.length < 3) {
-            sender.sendMessage("Verwendung: /ban <Spieler> <Dauer|perma> <Grund>");
+        if (args.length < 2) {
+            sender.sendMessage("Verwendung: /ban <Spieler> <Grund|Dauer> [Grund] oder /ban <Spieler> <Preset>");
             return;
         }
         Player target = Bukkit.getPlayerExact(args[0]);
         if (target == null) {
             sender.sendMessage("Zum Bannen muss der Spieler online sein.");
+            return;
+        }
+
+        Preset preset = PRESETS.get(args[1].toLowerCase(Locale.ROOT));
+        if (preset != null) {
+            if (preset.type().equals("mute")) {
+                long duration = preset.duration() == null ? 0 : parseBanDuration(preset.duration());
+                long expiresAt = duration == 0 ? 0 : System.currentTimeMillis() + duration;
+                UUID uuid = target.getUniqueId();
+                mutedPlayers.put(uuid, expiresAt);
+                moderation.set("mutes." + uuid + ".expiresAt", expiresAt);
+                moderation.set("mutes." + uuid + ".reason", preset.display());
+                moderation.set("mutes." + uuid + ".name", target.getName());
+                moderationStore.save();
+                sender.sendMessage(target.getName() + " wurde stummgeschaltet (" + preset.display() + ").");
+                return;
+            }
+            if (preset.type().equals("warn")) {
+                target.sendMessage("§eWarnung: " + preset.display());
+                sender.sendMessage(target.getName() + " wurde verwarnt: " + preset.display());
+                return;
+            }
+
+            long duration = preset.duration() == null ? 0 : parseBanDuration(preset.duration());
+            long now = System.currentTimeMillis();
+            if (duration < 0 || (duration > 0 && duration > Long.MAX_VALUE - now)) {
+                sender.sendMessage("Ungültige Preset-Dauer.");
+                return;
+            }
+            String reason = preset.display();
+            UUID uuid = target.getUniqueId();
+            moderation.set("bans." + uuid + ".reason", reason);
+            moderation.set("bans." + uuid + ".name", target.getName());
+            moderation.set("bans." + uuid + ".expiresAt", duration == 0 ? 0 : now + duration);
+            moderationStore.save();
+            String durationText = preset.duration() == null ? "permanent"
+                    : (preset.duration().equalsIgnoreCase("perm") ? "permanent" : preset.duration());
+            target.kickPlayer("Du wurdest " + durationText + " gebannt: " + reason);
+            sender.sendMessage(target.getName() + " wurde gebannt.");
+            return;
+        }
+
+        if (args.length < 3) {
+            sender.sendMessage("Verwendung: /ban <Spieler> <Dauer|perma> <Grund>");
             return;
         }
         long duration = parseBanDuration(args[1]);
@@ -233,6 +291,14 @@ public final class ModerationSystem implements CommandExecutor, Listener {
         return position == input.length() && total > 0 ? total : -1;
     }
 
+    @Override
+    public java.util.List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        if (command.getName().equalsIgnoreCase("ban") && args.length == 2) {
+            return new java.util.ArrayList<>(PRESETS.keySet());
+        }
+        return java.util.List.of();
+    }
+
     private String joinArgs(String[] args, int start, String fallback) {
         return start >= args.length ? fallback : String.join(" ", Arrays.copyOfRange(args, start, args.length));
     }
@@ -256,6 +322,9 @@ public final class ModerationSystem implements CommandExecutor, Listener {
             moderation.set("mutes." + event.getPlayer().getUniqueId(), null);
             moderationStore.save();
         }
+    }
+
+    private record Preset(String display, String duration, String type) {
     }
 
     @EventHandler

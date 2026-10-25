@@ -64,7 +64,12 @@ public class CaseListener implements Listener {
         if (clickedBlock.getType() == Material.ENDER_CHEST
                 && plugin.getCaseOpeningManager().getSettings().isGenericEnderChest(clickedBlock.getLocation())) {
             event.setCancelled(true);
-            event.getPlayer().openInventory(plugin.getCaseOpeningManager().createCaseSelectionInventory());
+            Player player = event.getPlayer();
+            if (!player.hasPermission("caseopening.case.use")) {
+                player.sendMessage("§cDu hast keine Berechtigung für Case-Opening.");
+                return;
+            }
+            player.openInventory(plugin.getCaseOpeningManager().createCaseSelectionInventory());
             return;
         }
 
@@ -85,6 +90,10 @@ public class CaseListener implements Listener {
         Player player = event.getPlayer();
 
         if (CaseCommand.CASE_CONTAINER_MARKER.equals(caseId)) {
+            if (!player.hasPermission("caseopening.case.use")) {
+                player.sendMessage("§cDu hast keine Berechtigung für Case-Opening.");
+                return;
+            }
             player.openInventory(plugin.getCaseOpeningManager().createCaseSelectionInventory());
             return;
         }
