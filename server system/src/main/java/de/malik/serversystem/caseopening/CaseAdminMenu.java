@@ -42,9 +42,10 @@ public final class CaseAdminMenu implements Listener {
         Inventory inventory = createInventory(holder, 54, "§8Case-Verwaltung");
 
         int slot = 0;
+        int[] caseSlots = {10, 11, 12, 13, 14, 19, 20, 21, 22, 23};
         if (data.getConfigurationSection("cases") != null) {
         for (String caseId : data.getConfigurationSection("cases").getKeys(false)) {
-            if (slot >= 45) {
+            if (slot >= caseSlots.length) {
                 break;
             }
             String path = "cases." + caseId;
@@ -52,11 +53,23 @@ public final class CaseAdminMenu implements Listener {
             ItemStack item = makeItem(material, data.getString(path + ".display-name", caseId),
                     "§7ID: §f" + caseId, "§7Kristallpreis: §e" + data.getInt(path + ".price"),
                     "§aKlicken zum Bearbeiten");
-            holder.bind(slot, caseId);
-            inventory.setItem(slot++, item);
+            int targetSlot = caseSlots[slot++];
+            holder.bind(targetSlot, caseId);
+            inventory.setItem(targetSlot, item);
         }
         }
 
+        ItemStack glass = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
+        ItemMeta glassMeta = glass.getItemMeta();
+        if (glassMeta != null) {
+            glassMeta.setDisplayName(" ");
+            glass.setItemMeta(glassMeta);
+        }
+        for (int i = 0; i < 54; i++) {
+            if (inventory.getItem(i) == null) {
+                inventory.setItem(i, glass.clone());
+            }
+        }
         inventory.setItem(49, makeItem(Material.EMERALD, "§aNeue Kiste erstellen", "§7Klicken und eine ID im Chat eingeben"));
         inventory.setItem(53, makeItem(Material.BARRIER, "§cSchließen"));
         player.openInventory(inventory);

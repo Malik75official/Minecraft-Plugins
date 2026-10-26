@@ -1,6 +1,6 @@
 # ServerSystem
 
-Paper-Plugin für Minecraft 26.2, Version 1.8.7. Enthält ServerSystem, Case-Opening und Mob-System. Benötigt ein JDK 25. Maven wird über den Windows-Wrapper beim ersten Build heruntergeladen.
+Paper-Plugin für Minecraft 26.2, Version 1.9.4. Enthält ServerSystem, Case-Opening und Mob-System. Benötigt ein JDK 25. Maven wird über den Windows-Wrapper beim ersten Build heruntergeladen.
 
 ## Build
 
@@ -8,7 +8,7 @@ Paper-Plugin für Minecraft 26.2, Version 1.8.7. Enthält ServerSystem, Case-Ope
 .\mvnw.cmd package
 ```
 
-Die Plugin-Datei liegt anschließend unter `target/server-system-1.8.7.jar`.
+Die Plugin-Datei liegt anschließend unter `target/server-system-1.9.4.jar`.
 Kopiere sie in den `plugins`-Ordner deines Paper-Servers und starte den Server neu.
 
 ## Befehle

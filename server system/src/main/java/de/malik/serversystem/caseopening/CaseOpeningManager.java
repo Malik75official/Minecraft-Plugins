@@ -146,10 +146,20 @@ public class CaseOpeningManager {
         CaseMenuHolder holder = new CaseMenuHolder(CaseMenuHolder.Kind.SELECTION, null, -1);
         Inventory inventory = Bukkit.createInventory(holder, 9 * 3, "§8Case Auswahl");
         holder.setInventory(inventory);
+        ItemStack glass = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
+        org.bukkit.inventory.meta.ItemMeta glassMeta = glass.getItemMeta();
+        if (glassMeta != null) {
+            glassMeta.setDisplayName(" ");
+            glass.setItemMeta(glassMeta);
+        }
+        for (int i = 0; i < 27; i++) {
+            inventory.setItem(i, glass.clone());
+        }
+        int slot = 10;
         for (CaseData caseData : cases.values()) {
             ItemStack item = createCaseItem(caseData.id, 1);
-            if (item != null) {
-                inventory.addItem(item);
+            if (item != null && slot < 17) {
+                inventory.setItem(slot++, item);
             }
         }
         return inventory;

@@ -33,6 +33,7 @@ import de.malik.serversystem.storage.PersistentYamlStorage;
 import de.malik.serversystem.storage.YamlStore;
 import de.malik.serversystem.teleport.FarmweltSystem;
 import de.malik.serversystem.teleport.HomeWarpSystem;
+import de.malik.serversystem.trade.TradeSystem;
 import de.malik.serversystem.utility.PlayerAdministrationSystem;
 import de.malik.serversystem.utility.UtilitySystem;
 
@@ -88,6 +89,7 @@ public final class ServerSystemBootstrap extends JavaPlugin {
         }
 
         EconomySystem economy = new EconomySystem(this, playerData);
+        TradeSystem tradeSystem = new TradeSystem(this, economy, crystalManager);
         try {
             if (getServer().getPluginManager().getPlugin("Vault") != null) {
                 Class<?> hookClass = Class.forName("de.malik.serversystem.economy.VaultEconomyHook");
@@ -119,6 +121,8 @@ public final class ServerSystemBootstrap extends JavaPlugin {
         MobSpawnCommand mobSpawnCommand = new MobSpawnCommand(mobConfig, mobDisplayManager);
 
         registerCommands(economy, "balance", "pay", "payall", "eco");
+        registerCommands(tradeSystem, "trade");
+        registerEvents(tradeSystem);
         registerCommands(bankSystem, "bank", "banknpc");
         registerCommands(homeWarps, "sethome", "home", "delhome", "homes", "setwarp", "warp", "delwarp");
         registerCommands(farmwelt, "farmwelt");

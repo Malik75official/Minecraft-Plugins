@@ -1,5 +1,5 @@
 name: ServerSystem
-version: 1.8.7
+version: 1.9.4
 main: de.malik.serversystem.ServerSystemBootstrap
 api-version: '26.2'
 author: Malik75
@@ -147,6 +147,10 @@ commands:
   lockchest:
     description: Sperrt oder entsperrt eine anvisierte Kiste.
     usage: /lockchest
+  trade:
+    description: Handel mit einem Spieler.
+    usage: /trade <accept|cancel|money>
+    permission: serversystem.command.trade
   nick:
     description: Setzt deinen Nicknamen.
     usage: /nick <Name|off>
@@ -286,6 +290,8 @@ permissions:
     default: op
   serversystem.command.lockchest:
     default: op
+  serversystem.command.trade:
+    default: true
   serversystem.command.nick:
     default: op
   serversystem.command.kick:
