@@ -43,7 +43,7 @@ public final class BankCitizensIntegration implements Listener {
             } catch (Throwable ignored) {
             }
             npc.spawn(player.getLocation());
-            bankSystem.ensureBankerAccountPublic(npc.getUniqueId());
+            bankSystem.ensureBankerAccountPublic(BankSystem.BANKER_UUID);
             player.sendMessage("§aBank-NPC (Citizens) platziert: " + npc.getUniqueId());
             return true;
         } catch (Throwable throwable) {

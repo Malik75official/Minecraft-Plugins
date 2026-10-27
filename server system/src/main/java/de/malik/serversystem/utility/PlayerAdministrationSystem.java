@@ -35,7 +35,11 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.Statistic;
 import org.bukkit.event.player.PlayerInteractEvent;
+import io.papermc.paper.event.player.AsyncChatEvent;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
@@ -54,15 +58,18 @@ public final class PlayerAdministrationSystem implements CommandExecutor, Listen
 
     private final JavaPlugin plugin;
     private final NamespacedKey lockedContainerKey;
+    private final String chatPrefix;
     private final Set<UUID> vanishedPlayers = new HashSet<>();
     private final Map<UUID, TeleportRequest> requestsByTarget = new HashMap<>();
     private final Map<UUID, TeleportRequest> requestsByRequester = new HashMap<>();
     private final Map<UUID, UUID> inventoryViewTargets = new HashMap<>();
     private final Map<UUID, String> nicknames = new HashMap<>();
+    private final Map<String, UUID> nicknameOwners = new HashMap<>();
 
     public PlayerAdministrationSystem(JavaPlugin plugin) {
         this.plugin = plugin;
         this.lockedContainerKey = new NamespacedKey(plugin, "locked_container");
+        this.chatPrefix = plugin.getConfig().getString("chat.prefix", "");
     }
 
     @Override
@@ -83,6 +90,9 @@ public final class PlayerAdministrationSystem implements CommandExecutor, Listen
             case "invsee" -> inspectInventory(sender, args);
             case "lockchest" -> toggleContainerLock(sender, args);
             case "nick" -> setNick(sender, args);
+            case "realname" -> realName(sender, args);
+            case "playerinfo" -> playerInfo(sender, args);
+            case "mystats" -> myStats(sender);
             default -> sender.sendMessage("Unbekannter Befehl.");
         }
         return true;
@@ -144,6 +154,16 @@ public final class PlayerAdministrationSystem implements CommandExecutor, Listen
         if (target != null && event.getView().getTopInventory() == target.getInventory()) {
             inventoryViewTargets.remove(viewerId, targetId);
         }
+    }
+
+    @EventHandler
+    public void onChatPrefix(AsyncChatEvent event) {
+        if (chatPrefix == null || chatPrefix.isBlank()) {
+            return;
+        }
+        String colored = org.bukkit.ChatColor.translateAlternateColorCodes('&', chatPrefix);
+        Component prefix = LegacyComponentSerializer.legacySection().deserialize(colored);
+        event.message(prefix.append(event.message()));
     }
 
     @EventHandler
@@ -574,7 +594,8 @@ public final class PlayerAdministrationSystem implements CommandExecutor, Listen
             return;
         }
         if (args[0].equalsIgnoreCase("off") || args[0].equalsIgnoreCase("reset")) {
-            nicknames.remove(player.getUniqueId());
+            String old = nicknames.remove(player.getUniqueId());
+            if (old != null) nicknameOwners.remove(old.toLowerCase(java.util.Locale.ROOT));
             player.displayName(Component.text(player.getName()));
             player.playerListName(Component.text(player.getName()));
             sender.sendMessage("§aDein Nickname wurde zurückgesetzt.");
@@ -585,10 +606,76 @@ public final class PlayerAdministrationSystem implements CommandExecutor, Listen
             sender.sendMessage("§cDer Nickname ist zu lang (max. 16 Zeichen).");
             return;
         }
-        nicknames.put(player.getUniqueId(), nick);
+        String old = nicknames.put(player.getUniqueId(), nick);
+        if (old != null) nicknameOwners.remove(old.toLowerCase(java.util.Locale.ROOT));
+        nicknameOwners.put(nick.toLowerCase(java.util.Locale.ROOT), player.getUniqueId());
         player.displayName(Component.text(nick));
         player.playerListName(Component.text(nick));
         sender.sendMessage("§aNickname gesetzt: " + nick);
+    }
+
+    private void realName(CommandSender sender, String[] args) {
+        if (args.length != 1) {
+            sender.sendMessage("Verwendung: /realname <Nickname>");
+            return;
+        }
+        UUID uuid = nicknameOwners.get(args[0].toLowerCase(java.util.Locale.ROOT));
+        if (uuid == null) {
+            sender.sendMessage("§cKein Spieler mit diesem Nickname gefunden.");
+            return;
+        }
+        Player target = Bukkit.getPlayer(uuid);
+        String name = target != null ? target.getName() : Bukkit.getOfflinePlayer(uuid).getName();
+        sender.sendMessage("§aEchter Name: §f" + name);
+    }
+
+    private void playerInfo(CommandSender sender, String[] args) {
+        if (!sender.hasPermission("serversystem.command.playerinfo")) {
+            sender.sendMessage("§cDafür hast du keine Berechtigung.");
+            return;
+        }
+        if (args.length != 1) {
+            sender.sendMessage("Verwendung: /playerinfo <Spieler>");
+            return;
+        }
+        Player target = Bukkit.getPlayerExact(args[0]);
+        if (target == null) {
+            sender.sendMessage("§cSpieler nicht online.");
+            return;
+        }
+        sendPlayerInfo(sender, target, true);
+    }
+
+    private void myStats(CommandSender sender) {
+        Player player = requirePlayer(sender);
+        if (player == null) {
+            return;
+        }
+        sendPlayerInfo(sender, player, false);
+    }
+
+    private void sendPlayerInfo(CommandSender sender, Player target, boolean full) {
+        de.malik.serversystem.ServerSystemBootstrap bootstrap = (de.malik.serversystem.ServerSystemBootstrap) plugin;
+        sender.sendMessage("§6=== Spielerinfo: " + target.getName() + " ===");
+        if (full) {
+            sender.sendMessage("§7UUID: §f" + target.getUniqueId());
+            if (target.getAddress() != null) {
+                sender.sendMessage("§7IP: §f" + target.getAddress().getAddress().getHostAddress());
+            }
+            org.bukkit.Location loc = target.getLocation();
+            sender.sendMessage("§7Koordinaten: §f" + loc.getBlockX() + ", " + loc.getBlockY() + ", " + loc.getBlockZ()
+                    + " §7(Klick: §f/tp " + target.getName() + "§7)");
+        }
+        long minutes = target.getStatistic(Statistic.PLAY_ONE_MINUTE) / 20 / 60;
+        sender.sendMessage("§7Spielzeit: §f" + minutes + " Minuten");
+        sender.sendMessage("§7Erster Join: §f" + new java.util.Date(target.getFirstPlayed()));
+        if (bootstrap.getEconomy() != null) {
+            sender.sendMessage("§7ECO: §f" + bootstrap.getEconomy().getFormattedBalance(target.getUniqueId()));
+        }
+        if (bootstrap.getBankSystem() != null) {
+            sender.sendMessage("§7Bank: §f" + bootstrap.getBankSystem().getBalance(target.getUniqueId()));
+        }
+        sender.sendMessage("§7Kristalle: §f" + bootstrap.getCrystalManager().getBalance(target.getUniqueId()));
     }
 
     private void toggleContainerLock(CommandSender sender, String[] args) {

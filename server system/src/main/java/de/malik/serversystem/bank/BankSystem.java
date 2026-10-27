@@ -50,6 +50,7 @@ public final class BankSystem implements Listener, CommandExecutor, org.bukkit.c
     private final YamlStore bankData;
     private final NamespacedKey bankNpcKey;
     private Object citizensIntegration;
+    public static final java.util.UUID BANKER_UUID = java.util.UUID.nameUUIDFromBytes("ServerSystem-Banker".getBytes());
     private final Map<UUID, PendingInput> pendingInputs = new ConcurrentHashMap<>();
 
     public BankSystem(JavaPlugin plugin, EconomySystem economy, PersistentYamlStorage storage) {
@@ -60,6 +61,8 @@ public final class BankSystem implements Listener, CommandExecutor, org.bukkit.c
         }
         this.bankData = new YamlStore(plugin, "bank.yml", storage);
         this.bankNpcKey = new NamespacedKey(plugin, "bank_npc");
+        ensureBankerAccount(BANKER_UUID);
+        bankData.data().set(accountPath(BANKER_UUID) + ".name", "Bänker");
         try {
             Class<?> integrationClass = Class.forName("de.malik.serversystem.bank.BankCitizensIntegration");
             this.citizensIntegration = integrationClass.getConstructor(JavaPlugin.class, BankSystem.class)
@@ -80,6 +83,45 @@ public final class BankSystem implements Listener, CommandExecutor, org.bukkit.c
     }
 
     private boolean handleCommand(Player player, String commandName, String[] args) {
+        if (commandName.equalsIgnoreCase("ecobank")) {
+            if (!player.hasPermission("serversystem.command.ecobank")) {
+                player.sendMessage("§cDafür hast du keine Berechtigung.");
+                return true;
+            }
+            if (args.length < 3) {
+                player.sendMessage("Verwendung: /ecobank <set|add|remove> <Spieler> <Betrag>");
+                return true;
+            }
+            org.bukkit.OfflinePlayer target = Bukkit.getOfflinePlayer(args[1]);
+            double amount;
+            try {
+                amount = Double.parseDouble(args[2]);
+            } catch (NumberFormatException e) {
+                player.sendMessage("§cUngültiger Betrag.");
+                return true;
+            }
+            if (amount < 0) {
+                player.sendMessage("§cBetrag darf nicht negativ sein.");
+                return true;
+            }
+            String path = accountPath(target.getUniqueId());
+            double current = bankData.data().getDouble(path + ".balance", 0);
+            double updated = current;
+            switch (args[0].toLowerCase(java.util.Locale.ROOT)) {
+                case "set" -> updated = amount;
+                case "add" -> updated = current + amount;
+                case "remove" -> updated = Math.max(0, current - amount);
+                default -> {
+                    player.sendMessage("Verwendung: /ecobank <set|add|remove> <Spieler> <Betrag>");
+                    return true;
+                }
+            }
+            bankData.data().set(path + ".balance", round(updated));
+            bankData.save();
+            player.sendMessage("Bankguthaben von " + target.getName() + ": " + economy.formatMoney(updated));
+            return true;
+        }
+
         if (commandName.equalsIgnoreCase("banknpc")) {
             if (!player.hasPermission("serversystem.command.bank.npc")) {
                 player.sendMessage("§cDafür hast du keine Berechtigung.");
@@ -199,7 +241,23 @@ public final class BankSystem implements Listener, CommandExecutor, org.bukkit.c
                 return java.util.List.of("delete");
             }
         }
+        if (command.getName().equalsIgnoreCase("ecobank")) {
+            if (args.length == 1) {
+                return java.util.List.of("set", "add", "remove");
+            }
+            if (args.length == 2) {
+                java.util.List<String> names = new java.util.ArrayList<>();
+                for (org.bukkit.OfflinePlayer p : org.bukkit.Bukkit.getOfflinePlayers()) {
+                    if (p.getName() != null) names.add(p.getName());
+                }
+                return names;
+            }
+        }
         return java.util.List.of();
+    }
+
+    public double getBalance(UUID playerId) {
+        return bankData.data().getDouble(accountPath(playerId) + ".balance", 0);
     }
 
     public void shutdown() {
@@ -229,7 +287,7 @@ public final class BankSystem implements Listener, CommandExecutor, org.bukkit.c
             villager.setPersistent(true);
             villager.getPersistentDataContainer().set(bankNpcKey, PersistentDataType.BYTE, (byte) 1);
         });
-        ensureBankerAccount(npc.getUniqueId());
+        ensureBankerAccount(BANKER_UUID);
         player.sendMessage("§aBank-NPC platziert: " + npc.getUniqueId());
     }
 
@@ -570,6 +628,11 @@ public final class BankSystem implements Listener, CommandExecutor, org.bukkit.c
         bankData.data().set(path + ".last-interest-percent",
                 startingBalance <= 0 ? 0 : round(totalInterest * 100 / startingBalance));
         bankData.data().set(path + ".last-fee", totalFees);
+        if (totalFees > 0) {
+            String bankerPath = accountPath(BANKER_UUID);
+            double bankerBalance = bankData.data().getDouble(bankerPath + ".balance", 0);
+            bankData.data().set(bankerPath + ".balance", round(bankerBalance + totalFees));
+        }
         bankData.save();
     }
 

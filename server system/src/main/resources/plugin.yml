@@ -1,9 +1,9 @@
 name: ServerSystem
-version: 1.9.4
+version: 1.9.9
 main: de.malik.serversystem.ServerSystemBootstrap
 api-version: '26.2'
 author: Malik75
-description: Server-System mit Economy, Homes, Warps, Moderation und Case-Opening
+description: Server-System mit Economy, Homes, Warps, Moderation, Case-Opening, Bank, Handel und Inventar-Sync
 
 commands:
   balance:
@@ -147,6 +147,22 @@ commands:
   lockchest:
     description: Sperrt oder entsperrt eine anvisierte Kiste.
     usage: /lockchest
+  realname:
+    description: Zeigt den echten Namen eines Nicknames.
+    usage: /realname <Nickname>
+    permission: serversystem.command.realname
+  playerinfo:
+    description: Zeigt alle Infos zu einem Spieler.
+    usage: /playerinfo <Spieler>
+    permission: serversystem.command.playerinfo
+  mystats:
+    description: Zeigt deine eigenen Infos.
+    usage: /mystats
+    permission: serversystem.command.mystats
+  ecobank:
+    description: Verwaltet Bankguthaben.
+    usage: /ecobank <set|add|remove> <Spieler> <Betrag>
+    permission: serversystem.command.ecobank
   trade:
     description: Handel mit einem Spieler.
     usage: /trade <accept|cancel|money>
@@ -177,7 +193,11 @@ commands:
     permission: serversystem.command.unmute
   case:
     description: Öffnet die Kisten-Auswahl oder verwaltet Kisten
-    usage: /case [admin|give|setprice|reload|list]
+    usage: /case [give|setprice|reload|list]
+  case-admin:
+    description: Öffnet die Case-Verwaltung
+    usage: /case-admin
+    permission: caseopening.admin
   case-set:
     description: Markiert eine Kiste, ein Barrel oder eine Enderchest als Case-Block
     usage: /case-set
@@ -289,6 +309,14 @@ permissions:
   serversystem.command.invsee.edit:
     default: op
   serversystem.command.lockchest:
+    default: op
+  serversystem.command.realname:
+    default: true
+  serversystem.command.playerinfo:
+    default: op
+  serversystem.command.mystats:
+    default: true
+  serversystem.command.ecobank:
     default: op
   serversystem.command.trade:
     default: true

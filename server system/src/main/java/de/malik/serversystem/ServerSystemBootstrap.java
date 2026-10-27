@@ -50,6 +50,7 @@ public final class ServerSystemBootstrap extends JavaPlugin {
     private CaseAdminMenu caseAdminMenu;
     private CrystalManager crystalManager;
     private PlayerAdministrationSystem playerAdministrationSystem;
+    private EconomySystem economy;
     private BankSystem bankSystem;
     private MobDisplayManager mobDisplayManager;
 
@@ -88,7 +89,7 @@ public final class ServerSystemBootstrap extends JavaPlugin {
             spawnData.save();
         }
 
-        EconomySystem economy = new EconomySystem(this, playerData);
+        economy = new EconomySystem(this, playerData);
         TradeSystem tradeSystem = new TradeSystem(this, economy, crystalManager);
         try {
             if (getServer().getPluginManager().getPlugin("Vault") != null) {
@@ -106,7 +107,7 @@ public final class ServerSystemBootstrap extends JavaPlugin {
         caseAdminMenu = new CaseAdminMenu(this);
         crystalManager = new CrystalManager(this, persistentStorage);
         CaseCommand caseCommand = new CaseCommand(this, caseAdminMenu);
-        registerCommands(caseCommand, "case", "case-set", "case-clear", "kristall", "crystals");
+        registerCommands(caseCommand, "case", "case-admin", "case-set", "case-clear", "kristall", "crystals");
         registerEvents(new CaseListener(this), caseAdminMenu);
 
         HomeWarpSystem homeWarps = new HomeWarpSystem(playerData, warpData);
@@ -123,13 +124,13 @@ public final class ServerSystemBootstrap extends JavaPlugin {
         registerCommands(economy, "balance", "pay", "payall", "eco");
         registerCommands(tradeSystem, "trade");
         registerEvents(tradeSystem);
-        registerCommands(bankSystem, "bank", "banknpc");
+        registerCommands(bankSystem, "bank", "banknpc", "ecobank");
         registerCommands(homeWarps, "sethome", "home", "delhome", "homes", "setwarp", "warp", "delwarp");
         registerCommands(farmwelt, "farmwelt");
         registerCommands(spawn, "setspawn", "spawn");
         registerCommands(utilities, "ec", "craft", "amboss", "ofen");
         registerCommands(playerAdministrationSystem, "fly", "i", "vanish", "gamemode", "tp", "tpo", "tphere",
-            "tpa", "tpahere", "tpaccept", "tpadeny", "tpacancel", "invsee", "lockchest");
+            "tpa", "tpahere", "tpaccept", "tpadeny", "tpacancel", "invsee", "lockchest", "realname", "playerinfo", "mystats");
         registerCommands(linkCommands, "discord", "webseite", "webshop");
         registerCommands(moderation, "kick", "ban", "unban", "mute", "unmute");
         registerCommands(mobSpawnCommand, "mobspawn");
@@ -152,11 +153,20 @@ public final class ServerSystemBootstrap extends JavaPlugin {
     private void printStartupBanner() {
         String[] banner = {
                 "",
-            "BBBBB   Y   Y       M   M   AAAAA   L       I  K   K   77777  55555",
-            "B    B   Y Y        MM MM   A   A   L       I  K  K       7    5",
-            "BBBBB     Y         M M M   AAAAA   L       I  KKK       7    5555",
-            "B    B    Y         M   M   A   A   L       I  K  K     7        5",
-            "BBBBB     Y         M   M   A   A   LLLLL   I  K   K   77777  5555",
+                " __                            __           _                  ",
+                "/ _\\ ___ _ ____   _____ _ __  / _\\_   _ ___| |_ ___ _ __ ___   ",
+                "\\ \\ / _ \\ '__\\ \\ / / _ \\ '__| \\ \\| | | / __| __/ _ \\ '_ ` _ \\  ",
+                " _\\ \\  __/ |   \\ V /  __/ |    _\\ \\ |_| \\__ \\ ||  __/ | | | | | ",
+                "\\__/\\___|_|    \\_/ \\___|_|    \\__/\\__, |___/\\__\\___|_| |_| |_| ",
+                "                                  |___/                        ",
+                " _                          _ _ _    _____ ____                ",
+                "| |__  _   _    /\\/\\   __ _| (_) | _|___  | ___|               ",
+                "| '_ \\| | | |  /    \\ / _` | | | |/ /  / /|___ \\               ",
+                "| |_) | |_| | / /\\/\\ \\ (_| | | |   <  / /  ___) |              ",
+                "|_.__/ \\__, | \\/    \\/\\__,_|_|_|_|\\_\\/_/  |____/               ",
+                "       |___/                                                    ",
+                "Server System",
+                "version: " + getDescription().getVersion(),
                 ""
         };
         for (String line : banner) {
@@ -245,6 +255,14 @@ public final class ServerSystemBootstrap extends JavaPlugin {
             getLogger().warning("Mob-Einstellungen konnten nicht gespeichert werden: " + exception.getMessage());
         }
         return mobConfig;
+    }
+
+    public EconomySystem getEconomy() {
+        return economy;
+    }
+
+    public BankSystem getBankSystem() {
+        return bankSystem;
     }
 
     public CaseOpeningManager getCaseOpeningManager() {

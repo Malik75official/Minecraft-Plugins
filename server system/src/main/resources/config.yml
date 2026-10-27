@@ -2,6 +2,9 @@ economy:
   starting-balance: 100.0
   currency: "$"
 
+chat:
+  prefix: "&7[Server] "
+
 spawn:
   protection-radius: 16
   welcome-message: "Willkommen auf dem Server, {player}!"

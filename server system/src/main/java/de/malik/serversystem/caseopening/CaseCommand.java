@@ -16,7 +16,7 @@ import org.bukkit.persistence.PersistentDataType;
 
 import de.malik.serversystem.ServerSystemBootstrap;
 
-public class CaseCommand implements CommandExecutor {
+public class CaseCommand implements CommandExecutor, org.bukkit.command.TabCompleter {
 
     public static final String CASE_CONTAINER_MARKER = "__generic_case_container__";
 
@@ -33,6 +33,18 @@ public class CaseCommand implements CommandExecutor {
         if (command.getName().equalsIgnoreCase("case")) {
             return handleCaseCommand(sender, args);
         }
+        if (command.getName().equalsIgnoreCase("case-admin")) {
+            if (!sender.hasPermission("caseopening.admin")) {
+                sender.sendMessage("§cDu hast keine Admin-Berechtigung.");
+                return true;
+            }
+            if (!(sender instanceof Player player)) {
+                sender.sendMessage("§cDieses Menü kann nur ingame geöffnet werden.");
+                return true;
+            }
+            adminMenu.openRoot(player);
+            return true;
+        }
         if (command.getName().equalsIgnoreCase("case-set")) {
             return handleCaseSetCommand(sender, args);
         }
@@ -43,6 +55,34 @@ public class CaseCommand implements CommandExecutor {
             return handleCrystalCommand(sender, args);
         }
         return false;
+    }
+
+    @Override
+    public java.util.List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        java.util.List<String> suggestions = new java.util.ArrayList<>();
+        if (command.getName().equalsIgnoreCase("case")) {
+            if (args.length == 1) {
+                if (sender.hasPermission("caseopening.admin")) {
+                    suggestions.add("give");
+                    suggestions.add("setprice");
+                    suggestions.add("reload");
+                    suggestions.add("list");
+                }
+            }
+            if (args.length == 2 && args[0].equalsIgnoreCase("give")) {
+                for (Player p : org.bukkit.Bukkit.getOnlinePlayers()) {
+                    suggestions.add(p.getName());
+                }
+            }
+        }
+        if (command.getName().equalsIgnoreCase("kristall") || command.getName().equalsIgnoreCase("crystals")) {
+            if (args.length == 1 && sender.hasPermission("caseopening.admin")) {
+                suggestions.add("give");
+                suggestions.add("set");
+                suggestions.add("balance");
+            }
+        }
+        return suggestions;
     }
 
     private boolean handleCaseSetCommand(CommandSender sender, String[] args) {
